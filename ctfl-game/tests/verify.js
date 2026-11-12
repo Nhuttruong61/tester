@@ -75,6 +75,9 @@ console.log('\n2. Running `node --check` on JavaScript files...');
 const jsFiles = [
   'js/data-chap123.js',
   'js/data-chap456.js',
+  'js/syllabus-full-vi.js',
+  'js/ai-provider.js',
+  'js/battle-stage.js',
   'js/sound-fx.js',
   'js/app.js'
 ];
@@ -538,14 +541,14 @@ for (const id of htmlIds) {
   mockElements.set(id, createMockElement(id, tag));
 }
 
-const navTabElements = ['campaign', 'exam', 'blitz', 'flashcards', 'codex'].map(view => {
+const navTabElements = ['study', 'campaign', 'exam', 'blitz', 'flashcards', 'codex', 'ai'].map(view => {
   const el = createMockElement(`nav-tab-${view}`, 'BUTTON');
   el.dataset.view = view;
   el.setAttribute('data-view', view);
   return el;
 });
 
-const viewSectionElements = ['view-campaign', 'view-arena', 'view-exam', 'view-blitz', 'view-flashcards', 'view-codex'].map(id => {
+const viewSectionElements = ['view-study', 'view-campaign', 'view-arena', 'view-exam', 'view-blitz', 'view-flashcards', 'view-codex', 'view-ai'].map(id => {
   return mockElements.get(id) || createMockElement(id, 'SECTION');
 });
 
@@ -694,9 +697,16 @@ domWindow.self = domWindow;
 
 vm.createContext(domWindow);
 
+const syllabusViPath = path.join(ROOT_DIR, 'js/syllabus-full-vi.js');
+const aiProviderPath = path.join(ROOT_DIR, 'js/ai-provider.js');
+const battleStagePath = path.join(ROOT_DIR, 'js/battle-stage.js');
+
 try {
   vm.runInContext(fs.readFileSync(chap123Path, 'utf8'), domWindow, { filename: 'data-chap123.js' });
   vm.runInContext(fs.readFileSync(chap456Path, 'utf8'), domWindow, { filename: 'data-chap456.js' });
+  vm.runInContext(fs.readFileSync(syllabusViPath, 'utf8'), domWindow, { filename: 'syllabus-full-vi.js' });
+  vm.runInContext(fs.readFileSync(aiProviderPath, 'utf8'), domWindow, { filename: 'ai-provider.js' });
+  vm.runInContext(fs.readFileSync(battleStagePath, 'utf8'), domWindow, { filename: 'battle-stage.js' });
   vm.runInContext(fs.readFileSync(soundFxPath, 'utf8'), domWindow, { filename: 'sound-fx.js' });
   vm.runInContext(fs.readFileSync(appJsPath, 'utf8'), domWindow, { filename: 'app.js' });
 
@@ -710,6 +720,44 @@ try {
   assertCheck(true, 'Full script bundle executed and initialized (DOMContentLoaded) without runtime errors');
 } catch (err) {
   assertCheck(false, 'Full script bundle executed and initialized (DOMContentLoaded) without runtime errors', `${err.stack || err.message}`);
+}
+
+// Verify CTFL_FULL_SYLLABUS_VI, CTFLAIProvider, CTFLBattleStage
+try {
+  const syl = domWindow.CTFL_FULL_SYLLABUS_VI;
+  assertCheck(Boolean(syl && Array.isArray(syl.chapters) && syl.chapters.length === 6), `window.CTFL_FULL_SYLLABUS_VI has 6 Vietnamese chapters (found ${syl && syl.chapters ? syl.chapters.length : 0})`);
+  if (syl) {
+    const hasSylApi = typeof syl.getChapter === 'function' && typeof syl.getSection === 'function' && typeof syl.search === 'function';
+    assertCheck(hasSylApi, 'window.CTFL_FULL_SYLLABUS_VI exposes getChapter, getSection, search');
+    const sec11 = syl.getSection(1, '1.1');
+    assertCheck(Boolean(sec11 && sec11.html && sec11.rawText), 'CTFL_FULL_SYLLABUS_VI.getSection(1, "1.1") returns Vietnamese HTML & rawText');
+  }
+
+  const ai = domWindow.CTFLAIProvider;
+  assertCheck(Boolean(ai), 'window.CTFLAIProvider is defined');
+  if (ai) {
+    const aiMethods = ['getConfig', 'saveConfig', 'parseApiKeys', 'maskApiKey', 'fetchModels', 'testAllKeys', 'generateQuestionsFromSyllabus', 'generateDynamicK3Questions', 'shuffleQuestionOptions', 'askSyllabusTutor'];
+    const missingAi = aiMethods.filter(m => typeof ai[m] !== 'function');
+    assertCheck(missingAi.length === 0, 'window.CTFLAIProvider implements all required OpenRouter & generator methods', `Missing: ${missingAi.join(', ')}`);
+
+    const dynQs = ai.generateDynamicK3Questions(5);
+    assertCheck(Array.isArray(dynQs) && dynQs.length === 5 && dynQs.every(q => Array.isArray(q.options) && q.options.length === 4 && q.correct >= 0 && q.correct <= 3), 'CTFLAIProvider.generateDynamicK3Questions(5) returns 5 valid K3 questions');
+
+    const sampleQ = { id: 'T1', options: ['A. Alpha', 'B. Beta', 'C. Gamma', 'D. Delta'], correct: 1 };
+    const shuffledQ = ai.shuffleQuestionOptions(sampleQ);
+    const strippedCorrect = shuffledQ.options[shuffledQ.correct].replace(/^[A-D]\.\s*/, '');
+    assertCheck(strippedCorrect === 'Beta', 'CTFLAIProvider.shuffleQuestionOptions preserves correct answer content after permuting');
+  }
+
+  const stage = domWindow.CTFLBattleStage;
+  assertCheck(Boolean(stage), 'window.CTFLBattleStage is defined');
+  if (stage) {
+    const stageMethods = ['init', 'setCombatants', 'updateState', 'heroAttack', 'heroShoot', 'heroShieldBlock', 'heroUltimate', 'bossAttack', 'bossDefeat', 'destroy', 'renderMiniLessonBattle'];
+    const missingStage = stageMethods.filter(m => typeof stage[m] !== 'function');
+    assertCheck(missingStage.length === 0, 'window.CTFLBattleStage implements all required interactive stage methods', `Missing: ${missingStage.join(', ')}`);
+  }
+} catch (err) {
+  assertCheck(false, 'New modules (Syllabus, AIProvider, BattleStage) verification', err.message);
 }
 
 // Verify CTFLSound & CTFLParticles exist and their methods run cleanly
@@ -751,7 +799,17 @@ try {
   const nextFcBtn = mockElements.get('btn-fc-next');
   if (nextFcBtn) nextFcBtn.click();
 
-  assertCheck(true, 'Simulated UI interactions (Navigation tabs, Mock Exam, Speed Blitz, Flashcards) without runtime errors');
+  // New features: AI Exam, Dynamic K3 Arena, Battle Stage actions, Study K3 Simulator
+  const startAiExamBtn = mockElements.get('btn-start-ai-exam');
+  if (startAiExamBtn) startAiExamBtn.click();
+  const dynK3Btn = mockElements.get('btn-dynamic-k3-now');
+  if (dynK3Btn) dynK3Btn.click();
+  ['btn-stage-slash', 'btn-stage-shoot', 'btn-stage-shield', 'btn-stage-ult', 'btn-study-mode-sim', 'btn-study-mode-full'].forEach(id => {
+    const el = mockElements.get(id);
+    if (el) el.click();
+  });
+
+  assertCheck(true, 'Simulated UI interactions (Navigation tabs, Mock Exam, AI Exam, Battle Stage, Study Simulator, Speed Blitz, Flashcards) without runtime errors');
 } catch (err) {
   assertCheck(false, 'Simulated UI interactions without runtime errors', `${err.stack || err.message}`);
 }

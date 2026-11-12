@@ -172,6 +172,28 @@
     return copy;
   }
 
+  /**
+   * Đảo ngẫu nhiên vị trí 4 phương án A, B, C, D để chống học thuộc lòng đáp án,
+   * đồng thời cập nhật lại nhãn A/B/C/D và chỉ số `correct` chính xác.
+   */
+  function _permuteQuestionOptions(q) {
+    if (!q || !Array.isArray(q.options) || q.options.length < 2) return q;
+    if (typeof window !== 'undefined' && window.CTFLAIProvider && typeof window.CTFLAIProvider.shuffleQuestionOptions === 'function') {
+      return window.CTFLAIProvider.shuffleQuestionOptions(q);
+    }
+    const labels = ['A', 'B', 'C', 'D'];
+    const indexed = q.options.map((text, idx) => ({
+      text: String(text || '').replace(/^[A-D][\.\)\:]\s*/i, '').trim(),
+      isCorrect: idx === Number(q.correct)
+    }));
+    const shuffled = shuffleArray(indexed);
+    const newCorrect = shuffled.findIndex((item) => item.isCorrect);
+    return Object.assign({}, q, {
+      options: shuffled.map((item, i) => `${labels[i] || (i + 1)}. ${item.text}`),
+      correct: newCorrect >= 0 ? newCorrect : 0
+    });
+  }
+
   function formatTimeMMSS(totalSeconds) {
     const sec = Math.max(0, Math.floor(totalSeconds));
     const m = Math.floor(sec / 60);
@@ -396,7 +418,12 @@
 
       const q123 = (typeof window !== 'undefined' && Array.isArray(window.CTFL_QUESTIONS_123)) ? window.CTFL_QUESTIONS_123 : [];
       const q456 = (typeof window !== 'undefined' && Array.isArray(window.CTFL_QUESTIONS_456)) ? window.CTFL_QUESTIONS_456 : [];
-      this.questions = q123.concat(q456);
+      const baseQs = q123.concat(q456);
+      const seenIds = new Set(baseQs.map((q) => q && q.id));
+      const aiQs = (typeof window !== 'undefined' && window.CTFLAIProvider && typeof window.CTFLAIProvider.getGeneratedQuestions === 'function')
+        ? window.CTFLAIProvider.getGeneratedQuestions().filter((q) => q && q.id && !seenIds.has(q.id))
+        : [];
+      this.questions = baseQs.concat(aiQs);
 
       const fc123 = (typeof window !== 'undefined' && Array.isArray(window.CTFL_FLASHCARDS_123)) ? window.CTFL_FLASHCARDS_123 : [];
       const fc456 = (typeof window !== 'undefined' && Array.isArray(window.CTFL_FLASHCARDS_456)) ? window.CTFL_FLASHCARDS_456 : [];
@@ -632,6 +659,9 @@
         if (typeof window !== 'undefined' && window.CTFLWorld3D && typeof window.CTFLWorld3D.exitBattle === 'function') {
           window.CTFLWorld3D.exitBattle();
         }
+        if (typeof window !== 'undefined' && window.CTFLBattleStage && typeof window.CTFLBattleStage.destroy === 'function') {
+          window.CTFLBattleStage.destroy();
+        }
       }
 
       if (this.arena && this.arena.timerInterval && viewName !== 'arena') {
@@ -644,7 +674,7 @@
       }
 
       this.currentView = viewName;
-      const views = ['study', 'campaign', 'arena', 'exam', 'blitz', 'flashcards', 'codex'];
+      const views = ['study', 'campaign', 'arena', 'exam', 'blitz', 'flashcards', 'codex', 'ai'];
       views.forEach((v) => {
         const section = safeEl('view-' + v);
         if (section) {
@@ -680,6 +710,8 @@
         this.renderFlashcard();
       } else if (viewName === 'codex') {
         this.renderCodexView();
+      } else if (viewName === 'ai') {
+        this.renderAIView();
       }
     }
 
@@ -894,9 +926,29 @@
       if (btnStartExam) {
         btnStartExam.addEventListener('click', () => {
           if (window.CTFLSound) window.CTFLSound.click();
-          this.startMockExam();
+          this.startMockExam(false);
         });
       }
+
+      const btnStartAiExam = safeEl('btn-start-ai-exam');
+      if (btnStartAiExam) {
+        btnStartAiExam.addEventListener('click', () => {
+          if (window.CTFLSound) window.CTFLSound.click();
+          this.startMockExam(true);
+        });
+      }
+
+      const btnOpenAiSettings = safeEl('btn-open-ai-settings');
+      if (btnOpenAiSettings) {
+        btnOpenAiSettings.addEventListener('click', () => {
+          if (window.CTFLSound) window.CTFLSound.click();
+          this.switchView('ai');
+        });
+      }
+
+      this._bindBattleStageEvents();
+      this._bindStudyEvents();
+      this._bindAIEvents();
 
       const btnExamFlag = safeEl('btn-exam-flag');
       if (btnExamFlag) {
@@ -1043,19 +1095,179 @@
       this.switchView('study');
     }
 
+    _bindStudyEvents() {
+      if (typeof document === 'undefined') return;
+      const searchInput = safeEl('study-search-input');
+      if (searchInput) {
+        searchInput.addEventListener('input', (e) => {
+          this.studySearchQuery = (e.target.value || '').trim();
+          this.renderStudyView();
+        });
+      }
+
+      const btnFull = safeEl('btn-study-mode-full');
+      const btnSim = safeEl('btn-study-mode-sim');
+      if (btnFull) {
+        btnFull.addEventListener('click', () => {
+          if (window.CTFLSound) window.CTFLSound.click();
+          this.studyMode = 'full';
+          const sim = safeEl('study-k3-simulator');
+          if (sim) sim.classList.add('hidden');
+          btnFull.classList.add('btn-primary');
+          btnFull.classList.remove('btn-secondary');
+          if (btnSim) {
+            btnSim.classList.remove('btn-primary');
+            btnSim.classList.add('btn-secondary');
+          }
+        });
+      }
+      if (btnSim) {
+        btnSim.addEventListener('click', () => {
+          if (window.CTFLSound) window.CTFLSound.click();
+          this.studyMode = 'sim';
+          const sim = safeEl('study-k3-simulator');
+          if (sim) {
+            sim.classList.remove('hidden');
+            this._renderK3Simulator();
+          }
+          btnSim.classList.add('btn-primary');
+          btnSim.classList.remove('btn-secondary');
+          if (btnFull) {
+            btnFull.classList.remove('btn-primary');
+            btnFull.classList.add('btn-secondary');
+          }
+        });
+      }
+
+      const btnStudyAi = safeEl('btn-study-ai-quiz');
+      if (btnStudyAi) {
+        btnStudyAi.addEventListener('click', async () => {
+          if (window.CTFLSound) window.CTFLSound.click();
+          const chId = Number(this.studyChapter) || 1;
+          const ai = typeof window !== 'undefined' ? window.CTFLAIProvider : null;
+          if (!ai) return;
+          const cfg = ai.getConfig ? ai.getConfig() : {};
+          const hasKeys = Array.isArray(cfg.apiKeys) && cfg.apiKeys.length > 0;
+          try {
+            let newQs = [];
+            if (hasKeys || cfg.provider === 'ollama') {
+              this._showToast(`🤖 AI đang soạn bài tập mới từ Chương ${chId}...`);
+              const aiRes = await ai.generateQuestionsFromSyllabus({ chapterId: chId, count: 5, kLevel: 'mixed' });
+              newQs = Array.isArray(aiRes) ? aiRes : (aiRes && Array.isArray(aiRes.questions) ? aiRes.questions : []);
+              this._loadDataPools();
+            } else {
+              newQs = ai.generateDynamicK3Questions(5, chId);
+              this._showToast(`🎲 Đã tạo 5 bài tập biến thể K3 mới cho Chương ${chId}!`);
+            }
+            if (newQs && newQs.length > 0) {
+              this.startArenaSession('chapter', chId, newQs, `🤖 Luyện Tập AI Chương ${chId} (${newQs.length} câu mới)`);
+            }
+          } catch (err) {
+            const fallbackQs = ai.generateDynamicK3Questions(5, chId);
+            this._showToast(`⚠️ AI đang bận (${err.message || 'lỗi mạng'}). Đã tạo 5 câu biến thể K3 offline!`);
+            this.startArenaSession('chapter', chId, fallbackQs, `🎲 Luyện Tập Biến Thể Chương ${chId}`);
+          }
+        });
+      }
+    }
+
+    _renderK3Simulator() {
+      const simEl = safeEl('study-k3-simulator');
+      if (!simEl) return;
+
+      const minVal = this._simBvaMin !== undefined ? this._simBvaMin : 10;
+      const maxVal = this._simBvaMax !== undefined ? this._simBvaMax : 50;
+      const pertO = this._simPertO !== undefined ? this._simPertO : 4;
+      const pertM = this._simPertM !== undefined ? this._simPertM : 7;
+      const pertP = this._simPertP !== undefined ? this._simPertP : 16;
+
+      const bva2 = [minVal - 1, minVal, maxVal, maxVal + 1];
+      const bva3 = [minVal - 1, minVal, minVal + 1, maxVal - 1, maxVal, maxVal + 1];
+      const pertE = ((pertO + 4 * pertM + pertP) / 6).toFixed(2);
+      const pertSD = ((pertP - pertO) / 6).toFixed(2);
+
+      simEl.innerHTML = `
+        <div class="k3-sim-box">
+          <h3 class="card-section-title">🧮 PHÒNG THÍ NGHIỆM TƯƠNG TÁC K3 (BVA, EP &amp; ƯỚC LƯỢNG 3 ĐIỂM PERT)</h3>
+          <p class="section-hint">Thay đổi trực tiếp khoảng giá trị [Min, Max] hoặc bộ số (O, M, P) để kiểm tra kết quả tức thì chuẩn ISTQB CTFL v4.0.1.</p>
+
+          <div style="display:grid; grid-template-columns:repeat(auto-fit, minmax(290px, 1fr)); gap:1rem; margin-top:0.85rem;">
+            <div style="background:rgba(15,23,42,0.8); border:1px solid rgba(34,211,238,0.3); border-radius:10px; padding:1rem;">
+              <h4 style="color:var(--cyan-bright); margin-bottom:0.6rem;">📐 1. Phân Tích Giá Trị Biên (BVA 2 &amp; 3 Giá Trị)</h4>
+              <div style="display:flex; gap:0.65rem; align-items:center; margin-bottom:0.75rem;">
+                <label style="font-size:0.84rem;">Min: <input id="sim-bva-min" type="number" class="tactical-input" style="width:90px;" value="${minVal}" /></label>
+                <label style="font-size:0.84rem;">Max: <input id="sim-bva-max" type="number" class="tactical-input" style="width:90px;" value="${maxVal}" /></label>
+              </div>
+              <div style="font-size:0.86rem; line-height:1.6;">
+                <div><strong>Phân vùng hợp lệ (EP):</strong> [${minVal} .. ${maxVal}] | Không hợp lệ: &lt; ${minVal} và &gt; ${maxVal}</div>
+                <div style="color:var(--emerald-bright); margin-top:0.35rem;"><strong>BVA 2 giá trị (4 điểm):</strong> ${bva2.join(', ')}</div>
+                <div style="color:var(--amber-bright); margin-top:0.2rem;"><strong>BVA 3 giá trị (6 điểm):</strong> ${bva3.join(', ')}</div>
+              </div>
+              <div style="margin-top:0.75rem; display:flex; align-items:center; gap:0.4rem; flex-wrap:wrap;">
+                ${bva3.map((v) => {
+                  const valid = v >= minVal && v <= maxVal;
+                  return `<span class="meta-badge ${valid ? 'badge-emerald' : 'badge-rose'}">${v} (${valid ? 'Hợp lệ' : 'Biên ngoài'})</span>`;
+                }).join('')}
+              </div>
+            </div>
+
+            <div style="background:rgba(15,23,42,0.8); border:1px solid rgba(245,158,11,0.3); border-radius:10px; padding:1rem;">
+              <h4 style="color:var(--amber-bright); margin-bottom:0.6rem;">⏱️ 2. Ước Lượng 3 Điểm (Three-Point / PERT)</h4>
+              <div style="display:flex; gap:0.5rem; flex-wrap:wrap; margin-bottom:0.75rem;">
+                <label style="font-size:0.84rem;">Lạc quan (O): <input id="sim-pert-o" type="number" class="tactical-input" style="width:76px;" value="${pertO}" /></label>
+                <label style="font-size:0.84rem;">Khả dĩ (M): <input id="sim-pert-m" type="number" class="tactical-input" style="width:76px;" value="${pertM}" /></label>
+                <label style="font-size:0.84rem;">Bi quan (P): <input id="sim-pert-p" type="number" class="tactical-input" style="width:76px;" value="${pertP}" /></label>
+              </div>
+              <div style="font-size:0.88rem; line-height:1.65;">
+                <div>Công thức: <code>E = (O + 4M + P) / 6</code> | <code>SD = (P - O) / 6</code></div>
+                <div style="color:var(--emerald-bright); font-weight:700; margin-top:0.35rem;">Giá trị kỳ vọng E = ${pertE}</div>
+                <div style="color:var(--cyan-bright); font-weight:700;">Độ lệch chuẩn SD = ${pertSD} (Khoảng tin cậy 68%: ${(Number(pertE) - Number(pertSD)).toFixed(2)} .. ${(Number(pertE) + Number(pertSD)).toFixed(2)})</div>
+              </div>
+            </div>
+          </div>
+        </div>
+      `;
+
+      const bindSim = (id, prop) => {
+        const el = safeEl(id);
+        if (el) {
+          el.addEventListener('input', () => {
+            const val = Number(el.value);
+            if (!Number.isNaN(val)) {
+              this[prop] = val;
+              this._renderK3Simulator();
+            }
+          });
+        }
+      };
+      bindSim('sim-bva-min', '_simBvaMin');
+      bindSim('sim-bva-max', '_simBvaMax');
+      bindSim('sim-pert-o', '_simPertO');
+      bindSim('sim-pert-m', '_simPertM');
+      bindSim('sim-pert-p', '_simPertP');
+    }
+
     renderStudyView() {
       const chId = Number(this.studyChapter) || 1;
       const ch = this.chapters.find((c) => c.id === chId) || this.chapters[0];
       if (!ch) return;
 
+      const fullSyllabus = typeof window !== 'undefined' ? window.CTFL_FULL_SYLLABUS_VI : null;
+      const fullChapter = fullSyllabus && typeof fullSyllabus.getChapter === 'function'
+        ? fullSyllabus.getChapter(ch.id)
+        : null;
+
       const tabsEl = safeEl('study-chapter-tabs');
       if (tabsEl) {
         tabsEl.innerHTML = this.chapters.map((c) => {
-          const sections = Array.isArray(c.cheatSheet) ? c.cheatSheet : [];
-          const doneCount = sections.filter((s) => this.state.studiedSections && this.state.studiedSections[`${c.id}_${s.section}`]).length;
+          const fCh = fullSyllabus && typeof fullSyllabus.getChapter === 'function' ? fullSyllabus.getChapter(c.id) : null;
+          const secList = (fCh && Array.isArray(fCh.sections) && fCh.sections.length > 0)
+            ? fCh.sections.map((s) => s.code)
+            : (Array.isArray(c.cheatSheet) ? c.cheatSheet.map((s) => s.section) : []);
+          const doneCount = secList.filter((code) => this.state.studiedSections && this.state.studiedSections[`${c.id}_${code}`]).length;
           return `
             <button type="button" class="filter-pill ${c.id === ch.id ? 'active' : ''}" data-study-tab="${c.id}">
-              📚 Chương ${c.id} (${doneCount}/${sections.length} mục)
+              📚 Chương ${c.id} (${doneCount}/${secList.length} mục)
             </button>
           `;
         }).join('');
@@ -1069,25 +1281,41 @@
         });
       }
 
-      const sections = Array.isArray(ch.cheatSheet) ? ch.cheatSheet : [];
-      const studiedCount = sections.filter((s) => this.state.studiedSections && this.state.studiedSections[`${ch.id}_${s.section}`]).length;
-      const pct = sections.length > 0 ? Math.round((studiedCount / sections.length) * 100) : 0;
+      const fullSections = (fullChapter && Array.isArray(fullChapter.sections) && fullChapter.sections.length > 0)
+        ? fullChapter.sections
+        : null;
+      const cheatSections = Array.isArray(ch.cheatSheet) ? ch.cheatSheet : [];
+      const totalSectionCount = fullSections ? fullSections.length : cheatSections.length;
+      const studiedCount = fullSections
+        ? fullSections.filter((s) => this.state.studiedSections && this.state.studiedSections[`${ch.id}_${s.code}`]).length
+        : cheatSections.filter((s) => this.state.studiedSections && this.state.studiedSections[`${ch.id}_${s.section}`]).length;
+      const pct = totalSectionCount > 0 ? Math.round((studiedCount / totalSectionCount) * 100) : 0;
 
       const overviewEl = safeEl('study-chapter-overview');
       if (overviewEl) {
+        const keywordsHtml = fullChapter && fullChapter.keywords
+          ? `<div style="margin-top:0.45rem; font-size:0.82rem; color:var(--cyan-bright);">🔑 <strong>Từ khóa chuẩn ISTQB:</strong> ${escapeHtml(fullChapter.keywords)}</div>`
+          : '';
+        const loHtml = fullChapter && fullChapter.learningObjectivesHtml
+          ? `<details style="margin-top:0.55rem; font-size:0.84rem; color:var(--text-secondary);"><summary style="cursor:pointer; color:var(--amber-bright); font-weight:600;">🎯 Xem Mục Tiêu Học Tập (Learning Objectives) &amp; Thời Lượng (${escapeHtml(fullChapter.durationText || '')})</summary><div class="syllabus-lo-box" style="margin-top:0.45rem;">${fullChapter.learningObjectivesHtml}</div></details>`
+          : '';
+
         overviewEl.innerHTML = `
           <div style="display:flex; flex-wrap:wrap; justify-content:space-between; align-items:center; gap:1rem; padding:1rem 1.25rem; background:rgba(15,23,42,0.75); border:1px solid var(--border-subtle); border-radius:12px; margin:1rem 0;">
             <div style="flex:1; min-width:260px;">
-              <div style="display:flex; align-items:center; gap:0.5rem; margin-bottom:0.35rem;">
+              <div style="display:flex; align-items:center; gap:0.5rem; flex-wrap:wrap; margin-bottom:0.35rem;">
                 <span class="meta-badge badge-cyan">${escapeHtml(ch.code)} • Trọng số thi: ${ch.examWeight} câu</span>
-                <span class="meta-badge badge-emerald">Tiến độ học: ${studiedCount}/${sections.length} mục (${pct}%)</span>
+                <span class="meta-badge badge-emerald">Tiến độ học: ${studiedCount}/${totalSectionCount} mục (${pct}%)</span>
+                ${fullChapter ? '<span class="meta-badge badge-amber">📘 Giáo Trình HTML Full Tiếng Việt v4.0.1</span>' : ''}
               </div>
               <h3 style="font-size:1.15rem; font-weight:700; color:var(--text-primary); margin-bottom:0.25rem;">
-                ${escapeHtml(ch.title)}
+                ${escapeHtml(fullChapter ? fullChapter.title : ch.title)}
               </h3>
               <p style="font-size:0.88rem; color:var(--text-secondary); margin:0;">
                 ${escapeHtml(ch.summary)}
               </p>
+              ${keywordsHtml}
+              ${loHtml}
             </div>
             <div style="display:flex; gap:0.65rem; flex-wrap:wrap;">
               <button type="button" class="btn btn-primary" data-study-start-raid="${ch.id}">
@@ -1110,21 +1338,78 @@
       if (listEl) {
         const chQuestions = this.questions.filter((q) => q.chapter === ch.id);
         const chFlashcards = this.flashcards.filter((f) => f.chapter === ch.id);
+        const searchQ = (this.studySearchQuery || '').toLowerCase();
 
-        listEl.innerHTML = sections.map((sec, idx) => {
-          const secKey = `${ch.id}_${sec.section}`;
+        // Build unified section items from CTFL_FULL_SYLLABUS_VI + cheatSheet
+        let sectionItems = fullSections
+          ? fullSections.map((fs) => {
+              const cs = cheatSections.find((c) => c.section === fs.code) || {};
+              return {
+                code: fs.code,
+                title: fs.title || cs.title || '',
+                html: fs.html || '',
+                rawText: fs.rawText || '',
+                subSections: Array.isArray(fs.subSections) ? fs.subSections : [],
+                points: cs.points || [],
+                interactiveCheck: fs.interactiveCheck || null
+              };
+            })
+          : cheatSections.map((cs) => ({
+              code: cs.section,
+              title: cs.title,
+              html: '',
+              rawText: (cs.points || []).join('\n'),
+              subSections: [],
+              points: cs.points || [],
+              interactiveCheck: null
+            }));
+
+        if (searchQ) {
+          sectionItems = sectionItems.filter((item) =>
+            (item.code + ' ' + item.title + ' ' + item.rawText + ' ' + (item.points || []).join(' ')).toLowerCase().includes(searchQ)
+          );
+        }
+
+        if (sectionItems.length === 0) {
+          listEl.innerHTML = `<div class="codex-card"><p class="text-muted">Không tìm thấy mục giáo trình nào khớp với từ khóa "${escapeHtml(this.studySearchQuery)}".</p></div>`;
+          return;
+        }
+
+        listEl.innerHTML = sectionItems.map((sec, idx) => {
+          const secKey = `${ch.id}_${sec.code}`;
           const isStudied = !!(this.state.studiedSections && this.state.studiedSections[secKey]);
 
-          // Find matching flashcards and a worked example question for this section
-          const matchFc = chFlashcards.find((f) => f.section && (f.section === sec.section || f.section.startsWith(sec.section) || sec.section.startsWith(f.section))) || chFlashcards[idx % Math.max(1, chFlashcards.length)];
-          const matchQ = chQuestions.find((q) => q.section && (q.section === sec.section || q.section.startsWith(sec.section) || sec.section.startsWith(q.section))) || chQuestions[idx % Math.max(1, chQuestions.length)];
+          const matchFc = chFlashcards.find((f) => f.section && (f.section === sec.code || f.section.startsWith(sec.code) || sec.code.startsWith(f.section))) || chFlashcards[idx % Math.max(1, chFlashcards.length)];
+          const matchQ = chQuestions.find((q) => q.section && (q.section === sec.code || q.section.startsWith(sec.code) || sec.code.startsWith(q.section))) || chQuestions[idx % Math.max(1, chQuestions.length)];
+
+          const fullHtmlBlock = sec.html
+            ? `<div class="syllabus-full-section">${sec.html}</div>`
+            : `<ul style="padding-left:1.2rem; display:flex; flex-direction:column; gap:0.45rem; font-size:0.92rem; color:var(--text-primary); line-height:1.55;">
+                ${(sec.points || []).map((pt) => `<li>${escapeHtml(pt)}</li>`).join('')}
+              </ul>`;
+
+          const cheatSummaryBlock = (sec.html && sec.points && sec.points.length > 0) ? `
+            <details style="margin-top:0.65rem; background:rgba(15,23,42,0.55); border:1px solid var(--border-subtle); border-radius:8px; padding:0.6rem 0.9rem;">
+              <summary style="cursor:pointer; font-size:0.84rem; font-weight:700; color:var(--cyan-bright);">⚡ Tóm Tắt Trọng Tâm Thi Cử Mục ${escapeHtml(sec.code)}</summary>
+              <ul style="padding-left:1.2rem; margin-top:0.45rem; display:flex; flex-direction:column; gap:0.35rem; font-size:0.88rem; color:var(--text-primary);">
+                ${sec.points.map((pt) => `<li>${escapeHtml(pt)}</li>`).join('')}
+              </ul>
+            </details>
+          ` : '';
+
+          const hookHtml = matchFc ? `
+            <div style="margin-top:0.65rem; padding:0.65rem 0.9rem; background:rgba(245,158,11,0.08); border:1px dashed rgba(245,158,11,0.35); border-radius:8px; font-size:0.84rem;">
+              <strong style="color:var(--amber-bright);">🧠 Thuật ngữ &amp; Khẩu quyết nhớ nhanh (${escapeHtml(matchFc.term)}):</strong>
+              <div style="color:var(--text-secondary); margin-top:0.2rem;">${escapeHtml(matchFc.memoryHook)}</div>
+            </div>
+          ` : '';
 
           const exampleHtml = matchQ ? `
-            <div style="margin-top:0.85rem; padding:0.9rem 1rem; background:rgba(6,182,212,0.07); border-left:3px solid var(--cyan-bright); border-radius:8px;">
-              <div style="font-size:0.78rem; font-weight:700; color:var(--cyan-bright); text-transform:uppercase; margin-bottom:0.35rem;">
-                📝 VÍ DỤ BÀI TẬP MẪU &amp; CÁCH GIẢI (${escapeHtml(matchQ.kLevel)})
-              </div>
-              <p style="font-size:0.9rem; color:var(--text-primary); font-weight:600; margin-bottom:0.5rem;">
+            <details style="margin-top:0.75rem; padding:0.75rem 1rem; background:rgba(6,182,212,0.07); border-left:3px solid var(--cyan-bright); border-radius:8px;">
+              <summary style="cursor:pointer; font-size:0.82rem; font-weight:700; color:var(--cyan-bright); text-transform:uppercase;">
+                📝 XEM VÍ DỤ BÀI TẬP MẪU &amp; LỜI GIẢI (${escapeHtml(matchQ.kLevel)})
+              </summary>
+              <p style="font-size:0.9rem; color:var(--text-primary); font-weight:600; margin:0.5rem 0;">
                 Tình huống: ${escapeHtml(matchQ.scenario)}
               </p>
               <div style="font-size:0.85rem; color:var(--emerald-bright); font-weight:700; margin-bottom:0.35rem;">
@@ -1136,41 +1421,165 @@
               <div style="font-size:0.82rem; color:var(--amber-bright);">
                 💡 <strong>Mẹo nhớ nhanh:</strong> ${escapeHtml(matchQ.mnemonic)}
               </div>
-            </div>
-          ` : '';
-
-          const hookHtml = matchFc ? `
-            <div style="margin-top:0.65rem; padding:0.65rem 0.9rem; background:rgba(245,158,11,0.08); border:1px dashed rgba(245,158,11,0.35); border-radius:8px; font-size:0.84rem;">
-              <strong style="color:var(--amber-bright);">🧠 Thuật ngữ &amp; Khẩu quyết nhớ nhanh (${escapeHtml(matchFc.term)}):</strong>
-              <div style="color:var(--text-secondary); margin-top:0.2rem;">${escapeHtml(matchFc.memoryHook)}</div>
-            </div>
+            </details>
           ` : '';
 
           return `
-            <article class="codex-card" style="border:1px solid ${isStudied ? 'var(--emerald-bright)' : 'var(--border-subtle)'}; padding:1.2rem;">
+            <article class="codex-card" style="border:1px solid ${isStudied ? 'var(--emerald-bright)' : 'var(--border-subtle)'}; padding:1.25rem;">
               <div class="q-meta-header" style="margin-bottom:0.75rem; padding-bottom:0.5rem;">
                 <div class="q-badges-left">
-                  <span class="meta-badge badge-cyan">BÀI HỌC MỤC ${escapeHtml(sec.section)}</span>
-                  ${isStudied ? '<span class="meta-badge badge-emerald">✓ ĐÃ HỌC XONG</span>' : '<span class="meta-badge badge-amber">CHƯA HỌC</span>'}
+                  <span class="meta-badge badge-cyan">GIÁO TRÌNH MỤC ${escapeHtml(sec.code)}</span>
+                  ${isStudied ? '<span class="meta-badge badge-emerald">✓ ĐÃ CHINH PHỤC MỤC HỌC</span>' : '<span class="meta-badge badge-amber">CHƯA CHINH PHỤC</span>'}
                 </div>
-                <button type="button" class="btn ${isStudied ? 'btn-secondary' : 'btn-success'} btn-sm" data-mark-studied="${escapeHtml(secKey)}">
-                  ${isStudied ? '✓ Đã Hiểu Mục Này' : '✅ Đánh Dấu Đã Hiểu (+25 XP)'}
-                </button>
+                <div style="display:flex; gap:0.45rem; flex-wrap:wrap;">
+                  <button type="button" class="btn btn-sm btn-secondary" data-study-ai-sec="${escapeHtml(sec.code)}">
+                    🤖 AI Tạo Câu Hỏi Mới Cho Mục Này
+                  </button>
+                  <button type="button" class="btn btn-sm btn-secondary" data-study-tutor-sec="${escapeHtml(sec.code)}">
+                    💬 Hỏi Gia Sư AI Về Mục Này
+                  </button>
+                  <button type="button" class="btn ${isStudied ? 'btn-secondary' : 'btn-success'} btn-sm" data-mark-studied="${escapeHtml(secKey)}">
+                    ${isStudied ? '✓ Đã Hiểu Mục Này' : '✅ Đánh Dấu Đã Hiểu (+25 XP)'}
+                  </button>
+                </div>
               </div>
-              <h4 style="font-size:1.08rem; font-weight:700; margin-bottom:0.65rem; color:var(--cyan-bright);">
-                📖 ${escapeHtml(sec.section)} — ${escapeHtml(sec.title)}
+              <h4 style="font-size:1.12rem; font-weight:700; margin-bottom:0.65rem; color:var(--cyan-bright);">
+                📖 ${escapeHtml(sec.code)} — ${escapeHtml(sec.title)}
               </h4>
-              <div style="font-size:0.82rem; font-weight:700; color:var(--text-muted); text-transform:uppercase; margin-bottom:0.35rem;">
-                KIẾN THỨC CỐT LÕI CẦN NHỚ:
-              </div>
-              <ul style="padding-left:1.2rem; display:flex; flex-direction:column; gap:0.45rem; font-size:0.92rem; color:var(--text-primary); line-height:1.55;">
-                ${(sec.points || []).map((pt) => `<li>${escapeHtml(pt)}</li>`).join('')}
-              </ul>
+              ${fullHtmlBlock}
+              ${cheatSummaryBlock}
               ${hookHtml}
               ${exampleHtml}
+              <div class="mini-lesson-battle-box" id="mini-battle-${escapeHtml(secKey)}" data-sec-code="${escapeHtml(sec.code)}"></div>
+              <div id="study-ai-box-${escapeHtml(sec.code.replace(/[^a-zA-Z0-9_-]/g, '_'))}" class="hidden" style="margin-top:0.75rem; padding:0.85rem 1rem; background:rgba(15,23,42,0.85); border:1px solid rgba(34,211,238,0.35); border-radius:8px; font-size:0.88rem;"></div>
             </article>
           `;
         }).join('');
+
+        // Mount Interactive Section Guardian Battle under each section
+        if (typeof window !== 'undefined' && window.CTFLBattleStage && typeof window.CTFLBattleStage.renderMiniLessonBattle === 'function') {
+          sectionItems.forEach((sec, idx) => {
+            const secKey = `${ch.id}_${sec.code}`;
+            const boxEl = safeEl(`mini-battle-${secKey}`);
+            if (!boxEl) return;
+            const secQs = chQuestions.filter((q) => q.section && (q.section === sec.code || q.section.startsWith(sec.code) || sec.code.startsWith(q.section)));
+            const battleQs = (secQs.length > 0 ? secQs : [chQuestions[idx % Math.max(1, chQuestions.length)]]).filter(Boolean).map(_permuteQuestionOptions);
+            window.CTFLBattleStage.renderMiniLessonBattle(boxEl, {
+              chapterId: ch.id,
+              sectionCode: sec.code,
+              sectionTitle: sec.title,
+              questions: battleQs,
+              onComplete: () => {
+                this.state.studiedSections = this.state.studiedSections || {};
+                if (!this.state.studiedSections[secKey]) {
+                  this.state.studiedSections[secKey] = true;
+                  this.addXP(35);
+                  this.saveState();
+                  this.updateHUD();
+                  this._showToast(`⚔️ Đã tiêu diệt Quái Canh Cổng Mục ${sec.code}! +35 XP`);
+                }
+              }
+            });
+          });
+        }
+
+        // Bind "AI Tạo Câu Hỏi Mới Cho Mục Này"
+        listEl.querySelectorAll('[data-study-ai-sec]').forEach((btn) => {
+          btn.addEventListener('click', async () => {
+            if (window.CTFLSound) window.CTFLSound.click();
+            const secCode = btn.getAttribute('data-study-ai-sec');
+            const safeSec = String(secCode || '').replace(/[^a-zA-Z0-9_-]/g, '_');
+            const outBox = safeEl(`study-ai-box-${safeSec}`);
+            const ai = typeof window !== 'undefined' ? window.CTFLAIProvider : null;
+            if (!ai || !outBox) return;
+
+            outBox.classList.remove('hidden');
+            outBox.innerHTML = `<span style="color:var(--cyan-bright);">⏳ AI OpenRouter đang đọc Mục ${escapeHtml(secCode)} và soạn câu hỏi mới...</span>`;
+            try {
+              const cfg = ai.getConfig ? ai.getConfig() : {};
+              let newQs = [];
+              if ((cfg.apiKeys && cfg.apiKeys.length > 0) || cfg.provider === 'ollama') {
+                const aiRes = await ai.generateQuestionsFromSyllabus({ chapterId: ch.id, sectionCode: secCode, count: 2, kLevel: 'mixed' });
+                newQs = Array.isArray(aiRes) ? aiRes : (aiRes && Array.isArray(aiRes.questions) ? aiRes.questions : []);
+                this._loadDataPools();
+              } else {
+                newQs = ai.generateDynamicK3Questions(2, ch.id);
+              }
+              const permuted = newQs.map(_permuteQuestionOptions);
+              const q0 = permuted[0];
+              if (!q0) {
+                outBox.innerHTML = '<span class="text-muted">Không tạo được câu hỏi mới.</span>';
+                return;
+              }
+              outBox.innerHTML = `
+                <div style="font-weight:700; color:var(--emerald-bright); margin-bottom:0.4rem;">🤖 Câu Hỏi Mới Do AI Tạo Cho Mục ${escapeHtml(secCode)} (${escapeHtml(q0.kLevel)}):</div>
+                <p style="margin-bottom:0.5rem; color:var(--text-primary);">${escapeHtml(q0.scenario)}</p>
+                <div style="display:flex; flex-direction:column; gap:0.35rem;">
+                  ${q0.options.map((opt, oIdx) => `
+                    <button type="button" class="option-btn" data-study-ai-opt="${oIdx}">${escapeHtml(opt)}</button>
+                  `).join('')}
+                </div>
+                <div class="study-ai-exp hidden" style="margin-top:0.5rem; color:var(--amber-bright);"></div>
+              `;
+              outBox.querySelectorAll('[data-study-ai-opt]').forEach((optBtn) => {
+                optBtn.addEventListener('click', () => {
+                  const picked = Number(optBtn.getAttribute('data-study-ai-opt'));
+                  const isOk = picked === q0.correct;
+                  outBox.querySelectorAll('[data-study-ai-opt]').forEach((b) => {
+                    b.disabled = true;
+                    const idx2 = Number(b.getAttribute('data-study-ai-opt'));
+                    if (idx2 === q0.correct) b.classList.add('correct');
+                    else if (idx2 === picked && !isOk) b.classList.add('wrong');
+                  });
+                  const expEl = outBox.querySelector('.study-ai-exp');
+                  if (expEl) {
+                    expEl.classList.remove('hidden');
+                    expEl.innerHTML = `${isOk ? '✅ Chính xác! +20 XP' : '❌ Chưa đúng!'} — ${escapeHtml(q0.explanation || '')}`;
+                  }
+                  if (isOk) {
+                    if (window.CTFLSound) window.CTFLSound.correct(1);
+                    this.addXP(20);
+                  } else if (window.CTFLSound) {
+                    window.CTFLSound.wrong();
+                  }
+                });
+              });
+            } catch (err) {
+              outBox.innerHTML = `<span style="color:var(--rose-bright);">⚠️ ${escapeHtml(err.message || 'Lỗi kết nối AI. Hãy cấu hình API Key trong tab AI Soạn Đề Mới.')}</span>`;
+            }
+          });
+        });
+
+        // Bind "Hỏi Gia Sư AI Về Mục Này"
+        listEl.querySelectorAll('[data-study-tutor-sec]').forEach((btn) => {
+          btn.addEventListener('click', async () => {
+            if (window.CTFLSound) window.CTFLSound.click();
+            const secCode = btn.getAttribute('data-study-tutor-sec');
+            const safeSec = String(secCode || '').replace(/[^a-zA-Z0-9_-]/g, '_');
+            const outBox = safeEl(`study-ai-box-${safeSec}`);
+            const ai = typeof window !== 'undefined' ? window.CTFLAIProvider : null;
+            if (!ai || !outBox) return;
+
+            outBox.classList.remove('hidden');
+            outBox.innerHTML = `<span style="color:var(--cyan-bright);">💬 Gia Sư AI đang phân tích Mục ${escapeHtml(secCode)}...</span>`;
+            try {
+              const reply = await ai.askSyllabusTutor({
+                chapterId: ch.id,
+                sectionCode: secCode,
+                questionText: `Hãy giải thích ngắn gọn, dễ hiểu những điểm cốt lõi và bẫy thường gặp trong đề thi ISTQB CTFL v4.0.1 của Mục ${secCode}.`
+              });
+              const answerText = (reply && typeof reply === 'object')
+                ? (reply.answer || reply.message || '')
+                : String(reply || '');
+              outBox.innerHTML = `
+                <div style="font-weight:700; color:var(--cyan-bright); margin-bottom:0.35rem;">💬 Gia Sư AI — Giải Thích Mục ${escapeHtml(secCode)}:</div>
+                <div style="white-space:pre-wrap; color:var(--text-primary); line-height:1.55;">${escapeHtml(answerText)}</div>
+              `;
+            } catch (err) {
+              outBox.innerHTML = `<span style="color:var(--rose-bright);">⚠️ ${escapeHtml(err.message || 'Chưa cấu hình API Key AI. Vào tab AI Soạn Đề Mới để thêm key OpenRouter.')}</span>`;
+            }
+          });
+        });
 
         listEl.querySelectorAll('[data-mark-studied]').forEach((btn) => {
           btn.addEventListener('click', () => {
@@ -1313,7 +1722,7 @@
       this.startArenaSession('mistake', null);
     }
 
-    startArenaSession(mode, chapterId) {
+    startArenaSession(mode, chapterId, customPool = null, customTitle = '') {
       let pool = [];
       let title = '';
       let boss = {
@@ -1322,7 +1731,18 @@
         title: 'Trùm Khiếm Khuyết Phần Mềm'
       };
 
-      if (mode === 'chapter' && chapterId) {
+      if (Array.isArray(customPool) && customPool.length > 0) {
+        pool = customPool.slice();
+        const ch = chapterId ? this.chapters.find((c) => c.id === Number(chapterId)) : null;
+        title = customTitle || (ch ? `🤖 Đột Kích AI Chương ${ch.id}: ${ch.title}` : '🤖 Đột Kích Đề Mới AI OpenRouter');
+        if (ch) {
+          boss = {
+            icon: ch.bossIcon || '👾',
+            name: ch.bossName,
+            title: ch.bossTitle
+          };
+        }
+      } else if (mode === 'chapter' && chapterId) {
         const ch = this.chapters.find((c) => c.id === Number(chapterId)) || this.chapters[0];
         pool = shuffleArray(this.questions.filter((q) => q.chapter === Number(chapterId))).slice(0, 12);
         title = `Chiến Dịch Chương ${ch ? ch.id : ''}: ${ch ? ch.title : 'Đột Kích Đại Trùm'}`;
@@ -1334,7 +1754,11 @@
           };
         }
       } else if (mode === 'k3') {
-        pool = shuffleArray(this.questions.filter((q) => q.kLevel === 'K3')).slice(0, 10);
+        const dynamicK3 = (typeof window !== 'undefined' && window.CTFLAIProvider && typeof window.CTFLAIProvider.generateDynamicK3Questions === 'function')
+          ? window.CTFLAIProvider.generateDynamicK3Questions(4)
+          : [];
+        const baseK3 = shuffleArray(this.questions.filter((q) => q.kLevel === 'K3')).slice(0, 6);
+        pool = shuffleArray(baseK3.concat(dynamicK3)).slice(0, 10);
         if (pool.length === 0) pool = shuffleArray(this.questions).slice(0, 10);
         title = '🧪 Phòng Lab Thực Chiến K3 (Phân Vùng, Giá Trị Biên, Bảng Quyết Định, 3 Điểm)';
         boss = {
@@ -1368,6 +1792,9 @@
 
       if (pool.length === 0) return;
 
+      // Chống học thuộc lòng: đảo ngẫu nhiên vị trí 4 phương án A, B, C, D
+      pool = pool.map(_permuteQuestionOptions);
+
       const currentChapterId = Number(chapterId) || (pool[0] && pool[0].chapter) || 1;
 
       this.arena = {
@@ -1381,6 +1808,9 @@
         bossHp: 100,
         combo: 0,
         maxCombo: 0,
+        fury: 0,
+        shieldGuardActive: false,
+        ultUsed: false,
         correctCount: 0,
         xpEarned: 0,
         answered: false,
@@ -1404,6 +1834,24 @@
       }
       if (typeof window !== 'undefined' && window.CTFLWorld3D && typeof window.CTFLWorld3D.enterBattle === 'function') {
         window.CTFLWorld3D.enterBattle(currentChapterId);
+      }
+      if (typeof window !== 'undefined' && window.CTFLBattleStage) {
+        if (typeof window.CTFLBattleStage.init === 'function') {
+          window.CTFLBattleStage.init('battle-stage-canvas', {
+            onStageAction: (action) => this._handleStageAction(action)
+          });
+        }
+        if (typeof window.CTFLBattleStage.setCombatants === 'function') {
+          window.CTFLBattleStage.setCombatants({
+            chapterId: currentChapterId,
+            bossName: boss.name,
+            bossIcon: boss.icon,
+            heroHp: 100,
+            bossHp: 100,
+            combo: 0,
+            fury: 0
+          });
+        }
       }
       this._startArenaTimer();
       this.renderArenaState();
@@ -1556,6 +2004,164 @@
 
       const elBhpText = safeEl('boss-hp-text');
       if (elBhpText) elBhpText.textContent = `${Math.max(0, a.bossHp)} / 100`;
+
+      const furyVal = Math.min(100, Math.max(0, a.fury || 0));
+      const elFuryPct = safeEl('stage-fury-pct');
+      if (elFuryPct) elFuryPct.textContent = `${furyVal}%`;
+
+      const btnUlt = safeEl('btn-stage-ult');
+      if (btnUlt) {
+        const canUlt = furyVal >= 100 || !a.ultUsed;
+        btnUlt.disabled = !canUlt;
+        btnUlt.classList.toggle('btn-primary', furyVal >= 100);
+      }
+
+      const btnShield = safeEl('btn-stage-shield');
+      if (btnShield) {
+        btnShield.classList.toggle('active', !!a.shieldGuardActive);
+      }
+
+      if (typeof window !== 'undefined' && window.CTFLBattleStage && typeof window.CTFLBattleStage.updateState === 'function') {
+        window.CTFLBattleStage.updateState({
+          heroHp: a.playerHp,
+          bossHp: a.bossHp,
+          combo: a.combo,
+          fury: furyVal,
+          shieldActive: !!a.shieldGuardActive
+        });
+      }
+    }
+
+    _bindBattleStageEvents() {
+      if (typeof document === 'undefined') return;
+      const btnSlash = safeEl('btn-stage-slash');
+      if (btnSlash) {
+        btnSlash.addEventListener('click', () => this._handleStageAction('slash'));
+      }
+      const btnShoot = safeEl('btn-stage-shoot');
+      if (btnShoot) {
+        btnShoot.addEventListener('click', () => this._handleStageAction('shoot'));
+      }
+      const btnShield = safeEl('btn-stage-shield');
+      if (btnShield) {
+        btnShield.addEventListener('click', () => this._handleStageAction('shield'));
+      }
+      const btnUlt = safeEl('btn-stage-ult');
+      if (btnUlt) {
+        btnUlt.addEventListener('click', () => this._handleStageAction('ultimate'));
+      }
+      const btnArenaAi = safeEl('btn-arena-ai-gen');
+      if (btnArenaAi) {
+        btnArenaAi.addEventListener('click', () => this._generateNewQuestionsForCurrentBoss());
+      }
+    }
+
+    _handleStageAction(action) {
+      if (!this.arena || this.arena.answered) return;
+      const a = this.arena;
+      const q = a.questions[a.index];
+
+      if (action === 'slash') {
+        if (window.CTFLSound) window.CTFLSound.click();
+        if (window.CTFLBattleStage && typeof window.CTFLBattleStage.heroAttack === 'function') {
+          window.CTFLBattleStage.heroAttack(false);
+        }
+        a.bossHp = Math.max(0, a.bossHp - 2);
+        a.fury = Math.min(100, (a.fury || 0) + 15);
+        const elBossAvatar = safeEl('boss-avatar');
+        if (elBossAvatar) this._spawnFloatingDamage(elBossAvatar, '-2 HP CHÉM KIẾM!', '');
+        this._updateArenaCombatHUD();
+      } else if (action === 'shoot' || action === 'weakpoint') {
+        if (window.CTFLSound) window.CTFLSound.select();
+        if (window.CTFLBattleStage && typeof window.CTFLBattleStage.heroShoot === 'function') {
+          window.CTFLBattleStage.heroShoot();
+        }
+        a.bossHp = Math.max(0, a.bossHp - 2);
+        a.fury = Math.min(100, (a.fury || 0) + 15);
+        const elBossAvatar = safeEl('boss-avatar');
+        if (elBossAvatar) this._spawnFloatingDamage(elBossAvatar, '-2 HP LASER!', '');
+        this._updateArenaCombatHUD();
+      } else if (action === 'shield') {
+        if (window.CTFLSound) window.CTFLSound.powerup();
+        a.shieldGuardActive = true;
+        this._updateArenaCombatHUD();
+        this._showToast('🛡️ Khiên Năng Lượng đã bật! Giảm 75% sát thương nếu trả lời sai câu này.');
+      } else if (action === 'ultimate') {
+        if ((a.fury || 0) < 100 && a.ultUsed) {
+          this._showToast('⚡ Cần tích đủ 100% Nộ để tung thêm Tuyệt Kỹ!');
+          return;
+        }
+        if (window.CTFLSound) window.CTFLSound.criticalHit();
+        if ((a.fury || 0) >= 100) {
+          a.fury = 0;
+        } else {
+          a.ultUsed = true;
+        }
+        if (window.CTFLBattleStage && typeof window.CTFLBattleStage.heroUltimate === 'function') {
+          window.CTFLBattleStage.heroUltimate();
+        }
+        a.bossHp = Math.max(0, a.bossHp - 15);
+        const elBossAvatar = safeEl('boss-avatar');
+        if (elBossAvatar) this._spawnFloatingDamage(elBossAvatar, '-15 HP TUYỆT KỸ!', 'dmg-crit');
+
+        // Tự động loại bỏ 1 đáp án sai trên bảng câu hỏi
+        if (q) {
+          const elOptions = safeEl('q-options-list');
+          if (elOptions) {
+            const wrongBtns = Array.from(elOptions.querySelectorAll('.option-btn')).filter((b) => {
+              const idx = Number(b.getAttribute('data-opt-index'));
+              return idx !== q.correct && !b.disabled;
+            });
+            if (wrongBtns.length > 0) {
+              const victim = wrongBtns[Math.floor(Math.random() * wrongBtns.length)];
+              victim.disabled = true;
+              victim.classList.add('eliminated');
+            }
+          }
+        }
+        this._updateArenaCombatHUD();
+        this._showToast('⚡ Tuyệt Kỹ Orbital Laser! Trùm mất 15 HP & loại bỏ 1 phương án sai!');
+      }
+    }
+
+    async _generateNewQuestionsForCurrentBoss() {
+      if (!this.arena) return;
+      const a = this.arena;
+      const ai = typeof window !== 'undefined' ? window.CTFLAIProvider : null;
+      if (!ai) return;
+
+      const btn = safeEl('btn-arena-ai-gen');
+      if (btn) btn.disabled = true;
+      try {
+        const cfg = ai.getConfig ? ai.getConfig() : {};
+        const hasKeys = Array.isArray(cfg.apiKeys) && cfg.apiKeys.length > 0;
+        let newQs = [];
+        if (hasKeys || cfg.provider === 'ollama') {
+          this._showToast(`🤖 AI đang soạn bộ đề mới cho Trùm Chương ${a.chapterId}...`);
+          const aiRes = await ai.generateQuestionsFromSyllabus({ chapterId: a.chapterId, count: 6, kLevel: 'mixed' });
+          newQs = Array.isArray(aiRes) ? aiRes : (aiRes && Array.isArray(aiRes.questions) ? aiRes.questions : []);
+          this._loadDataPools();
+        } else {
+          newQs = ai.generateDynamicK3Questions(6, a.chapterId);
+          this._showToast(`🎲 Chưa có API Key — Đã sinh 6 câu biến thể K3 số liệu mới cho Trùm!`);
+        }
+        if (Array.isArray(newQs) && newQs.length > 0) {
+          a.questions = newQs.map(_permuteQuestionOptions);
+          a.index = 0;
+          a.answered = false;
+          this.renderArenaState();
+          this._showToast(`✨ Đã nạp ${a.questions.length} câu hỏi mới tinh chống học thuộc lòng!`);
+        }
+      } catch (err) {
+        const fallbackQs = ai.generateDynamicK3Questions(6, a.chapterId);
+        a.questions = fallbackQs.map(_permuteQuestionOptions);
+        a.index = 0;
+        a.answered = false;
+        this.renderArenaState();
+        this._showToast(`⚠️ AI bận (${err.message || 'lỗi mạng'}). Đã nạp 6 câu biến thể K3 mới!`);
+      } finally {
+        if (btn) btn.disabled = false;
+      }
     }
 
     usePowerup(type) {
@@ -1698,14 +2304,24 @@
         a.bossHp = Math.max(0, a.bossHp - totalDmg);
 
         const isCritical = q.kLevel === 'K3' || a.combo >= 3;
+        a.fury = Math.min(100, (a.fury || 0) + 25);
+        a.shieldGuardActive = false;
 
-        // Trigger 3D Hero Attack animation
+        // Trigger 3D Hero Attack animation & 2.5D Battle Stage animation
         if (typeof window !== 'undefined' && window.CTFLWorld3D) {
           if (typeof window.CTFLWorld3D.heroAttack === 'function') {
             window.CTFLWorld3D.heroAttack(isCritical);
           }
           if (a.bossHp <= 0 && typeof window.CTFLWorld3D.bossDefeat === 'function') {
             window.CTFLWorld3D.bossDefeat();
+          }
+        }
+        if (typeof window !== 'undefined' && window.CTFLBattleStage) {
+          if (typeof window.CTFLBattleStage.heroAttack === 'function') {
+            window.CTFLBattleStage.heroAttack(isCritical);
+          }
+          if (a.bossHp <= 0 && typeof window.CTFLBattleStage.bossDefeat === 'function') {
+            window.CTFLBattleStage.bossDefeat();
           }
         }
 
@@ -1757,11 +2373,21 @@
       } else {
         a.combo = 0;
         a.freezeBonusActive = false;
-        a.playerHp = Math.max(0, a.playerHp - 20);
+        const shielded = !!a.shieldGuardActive;
+        const dmgTaken = shielded ? 5 : 20;
+        a.shieldGuardActive = false;
+        a.playerHp = Math.max(0, a.playerHp - dmgTaken);
 
-        // Trigger 3D Boss Attack animation
+        // Trigger 3D Boss Attack & 2.5D Battle Stage animation
         if (typeof window !== 'undefined' && window.CTFLWorld3D && typeof window.CTFLWorld3D.bossAttack === 'function') {
           window.CTFLWorld3D.bossAttack();
+        }
+        if (typeof window !== 'undefined' && window.CTFLBattleStage) {
+          if (shielded && typeof window.CTFLBattleStage.heroShieldBlock === 'function') {
+            window.CTFLBattleStage.heroShieldBlock();
+          } else if (typeof window.CTFLBattleStage.bossAttack === 'function') {
+            window.CTFLBattleStage.bossAttack();
+          }
         }
 
         if (!this.state.mistakes.includes(q.id)) {
@@ -1771,7 +2397,9 @@
 
         if (window.CTFLSound) window.CTFLSound.wrong();
         if (elBossDialogue) {
-          elBossDialogue.textContent = `"${BOSS_QUOTES.miss[a.index % BOSS_QUOTES.miss.length]}"`;
+          elBossDialogue.textContent = shielded
+            ? '"Hừ! Khiên Năng Lượng của ngươi đã đỡ được 75% sát thương!"'
+            : `"${BOSS_QUOTES.miss[a.index % BOSS_QUOTES.miss.length]}"`;
         }
         const elPhpBar = safeEl('player-hp-bar');
         if (elPhpBar) {
@@ -1780,7 +2408,7 @@
           void playerCard.offsetWidth;
           playerCard.classList.add('player-hit', 'hit-shake');
           setTimeout(() => playerCard.classList.remove('player-hit', 'hit-shake'), 500);
-          this._spawnFloatingDamage(elPhpBar, '-20 HP TRÚNG ĐÒN!', '');
+          this._spawnFloatingDamage(elPhpBar, shielded ? '-5 HP KHIÊN ĐỠ!' : '-20 HP TRÚNG ĐÒN!', '');
         }
       }
 
@@ -1996,12 +2624,35 @@
       return examQs;
     }
 
-    startMockExam() {
+    startMockExam(useAiOrDynamic = false, customQuestions = null) {
       if (this.exam && this.exam.timerInterval) {
         clearInterval(this.exam.timerInterval);
       }
 
-      const qs = this._generateWeightedExamQuestions();
+      let qs = [];
+      if (Array.isArray(customQuestions) && customQuestions.length > 0) {
+        qs = customQuestions.slice(0, 40);
+        if (qs.length < 40) {
+          const base = this._generateWeightedExamQuestions();
+          const usedIds = new Set(qs.map((q) => q.id));
+          qs = qs.concat(base.filter((q) => !usedIds.has(q.id))).slice(0, 40);
+        }
+      } else if (useAiOrDynamic && typeof window !== 'undefined' && window.CTFLAIProvider) {
+        const ai = window.CTFLAIProvider;
+        const aiStored = typeof ai.getGeneratedQuestions === 'function' ? ai.getGeneratedQuestions() : [];
+        const dynK3 = typeof ai.generateDynamicK3Questions === 'function' ? ai.generateDynamicK3Questions(12) : [];
+        const mixedAi = shuffleArray(aiStored).slice(0, 14).concat(dynK3);
+        const base = this._generateWeightedExamQuestions();
+        const usedIds = new Set(mixedAi.map((q) => q.id));
+        qs = shuffleArray(mixedAi.concat(base.filter((q) => !usedIds.has(q.id))).slice(0, 40));
+        this._showToast(`🤖 Đã tạo đề thi mới gồm ${mixedAi.length} câu AI/Biến thể K3 & đảo vị trí A/B/C/D!`);
+      } else {
+        qs = this._generateWeightedExamQuestions();
+      }
+
+      // Chống học thuộc lòng: đảo ngẫu nhiên vị trí 4 đáp án cho toàn bộ đề thi
+      qs = qs.map(_permuteQuestionOptions);
+
       this.exam = {
         questions: qs,
         answers: new Array(qs.length).fill(null),
@@ -2301,7 +2952,7 @@
 
       this.blitz = {
         active: true,
-        pool: shuffleArray(this.questions),
+        pool: shuffleArray(this.questions).map(_permuteQuestionOptions),
         index: 0,
         timeLeft: 60,
         score: 0,
@@ -2352,7 +3003,7 @@
       if (!this.blitz || !this.blitz.active) return;
       const b = this.blitz;
       if (b.index >= b.pool.length) {
-        b.pool = shuffleArray(this.questions);
+        b.pool = shuffleArray(this.questions).map(_permuteQuestionOptions);
         b.index = 0;
       }
       const q = b.pool[b.index];
@@ -2713,6 +3364,321 @@
           </div>
         `;
       }).join('');
+    }
+
+    // =========================================================================
+    // 6. TRUNG TÂM AI OPENROUTER & BỘ SINH ĐỀ CHỐNG HỌC VẸT (#view-ai)
+    // =========================================================================
+    _readAIFormConfig() {
+      const providerEl = safeEl('ai-provider-select');
+      const endpointEl = safeEl('ai-endpoint-input');
+      const modelEl = safeEl('ai-model-select');
+      const filterEl = safeEl('ai-filter-free');
+      const rotEl = safeEl('ai-rotation-select');
+      const keysEl = safeEl('ai-keys-textarea');
+      const ai = typeof window !== 'undefined' ? window.CTFLAIProvider : null;
+
+      const rawKeys = keysEl ? keysEl.value : '';
+      const parsedKeys = ai && typeof ai.parseApiKeys === 'function'
+        ? ai.parseApiKeys(rawKeys)
+        : rawKeys.split(/[\s,;]+/).map((s) => s.trim()).filter(Boolean);
+
+      return {
+        provider: providerEl ? providerEl.value : 'openrouter',
+        endpoint: endpointEl ? endpointEl.value.trim() : 'https://ai-api.congnghevietha.vn',
+        model: modelEl && modelEl.value ? modelEl.value : 'openrouter/auto',
+        filterFreeOnly: filterEl ? !!filterEl.checked : true,
+        rotationStrategy: rotEl ? rotEl.value : 'failover',
+        apiKeys: parsedKeys
+      };
+    }
+
+    _renderAIKeysTable(keys) {
+      const tbody = safeEl('ai-keys-table-body');
+      if (!tbody) return;
+      const ai = typeof window !== 'undefined' ? window.CTFLAIProvider : null;
+      const cfg = ai && typeof ai.getConfig === 'function' ? ai.getConfig() : {};
+      const providerLabel = String(cfg.provider || 'openrouter').toUpperCase();
+      const list = Array.isArray(keys) ? keys : [];
+
+      if (list.length === 0) {
+        tbody.innerHTML = '<tr><td colspan="5" class="text-muted" style="text-align:center;">Chưa có API Key nào trong bể khóa.</td></tr>';
+        return;
+      }
+
+      tbody.innerHTML = list.map((k, idx) => {
+        const masked = ai && typeof ai.maskApiKey === 'function' ? ai.maskApiKey(k) : (k.slice(0, 8) + '••••' + k.slice(-4));
+        return `
+          <tr>
+            <td>#${idx + 1}</td>
+            <td><span class="meta-badge badge-cyan">${escapeHtml(providerLabel)}</span></td>
+            <td class="mono-text">${escapeHtml(masked)}</td>
+            <td><span class="meta-badge badge-emerald">Sẵn sàng</span></td>
+            <td><button type="button" class="btn btn-sm btn-secondary" data-ai-remove-key="${idx}">🗑️ Xóa</button></td>
+          </tr>
+        `;
+      }).join('');
+
+      tbody.querySelectorAll('[data-ai-remove-key]').forEach((btn) => {
+        btn.addEventListener('click', () => {
+          const removeIdx = Number(btn.getAttribute('data-ai-remove-key'));
+          if (!ai || typeof ai.getConfig !== 'function' || typeof ai.saveConfig !== 'function') return;
+          const cfg = ai.getConfig();
+          const nextKeys = (cfg.apiKeys || []).filter((_, i) => i !== removeIdx);
+          ai.saveConfig(Object.assign({}, cfg, { apiKeys: nextKeys }));
+          this.renderAIView();
+          this._showToast('🗑️ Đã xóa khóa khỏi bể xoay vòng.');
+        });
+      });
+    }
+
+    _renderAIGeneratedPreview(questionsArg = null) {
+      const previewEl = safeEl('ai-generated-preview');
+      if (!previewEl) return;
+      const ai = typeof window !== 'undefined' ? window.CTFLAIProvider : null;
+      const list = Array.isArray(questionsArg)
+        ? questionsArg
+        : (ai && typeof ai.getGeneratedQuestions === 'function' ? ai.getGeneratedQuestions() : []);
+
+      if (!list || list.length === 0) {
+        previewEl.innerHTML = '<p class="text-muted">Chưa có bộ đề AI nào được tạo trong phiên này. Bấm một trong hai nút ở trên để tạo đề mới!</p>';
+        return;
+      }
+
+      const recent = list.slice(0, 8);
+      previewEl.innerHTML = `
+        <div style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:0.5rem; margin-bottom:0.75rem;">
+          <span class="meta-badge badge-emerald">Đang lưu ${list.length} câu hỏi AI / Biến thể mới</span>
+          <button type="button" class="btn btn-sm btn-primary" id="btn-ai-launch-preview-arena">⚔️ Đấu Trùm Với Bộ Câu Hỏi Này Ngay</button>
+        </div>
+        <div style="display:flex; flex-direction:column; gap:0.65rem;">
+          ${recent.map((q, idx) => `
+            <div style="padding:0.75rem 0.9rem; background:rgba(15,23,42,0.75); border:1px solid var(--border-subtle); border-radius:8px; font-size:0.86rem;">
+              <div style="display:flex; gap:0.4rem; margin-bottom:0.35rem;">
+                <span class="meta-badge badge-cyan">Câu ${idx + 1} • Chương ${q.chapter || 1}</span>
+                <span class="meta-badge badge-amber">${escapeHtml(q.kLevel || 'K2')}</span>
+              </div>
+              <div style="font-weight:600; color:var(--text-primary); margin-bottom:0.3rem;">${escapeHtml(q.scenario)}</div>
+              <div style="color:var(--emerald-bright); font-size:0.82rem;">✓ Đáp án: ${escapeHtml((q.options && q.options[q.correct]) || '')}</div>
+            </div>
+          `).join('')}
+        </div>
+      `;
+
+      const launchBtn = safeEl('btn-ai-launch-preview-arena');
+      if (launchBtn) {
+        launchBtn.addEventListener('click', () => {
+          if (window.CTFLSound) window.CTFLSound.click();
+          const chId = Number(recent[0] && recent[0].chapter) || 1;
+          this.startArenaSession('chapter', chId, recent, `🤖 Đấu Trùm Bộ Đề AI Mới (${recent.length} câu)`);
+        });
+      }
+    }
+
+    renderAIView() {
+      const ai = typeof window !== 'undefined' ? window.CTFLAIProvider : null;
+      if (!ai || typeof ai.getConfig !== 'function') return;
+
+      const cfg = ai.getConfig();
+      const providerEl = safeEl('ai-provider-select');
+      const endpointEl = safeEl('ai-endpoint-input');
+      const modelEl = safeEl('ai-model-select');
+      const filterEl = safeEl('ai-filter-free');
+      const rotEl = safeEl('ai-rotation-select');
+      const keysEl = safeEl('ai-keys-textarea');
+
+      if (providerEl) providerEl.value = cfg.provider || 'openrouter';
+      if (endpointEl) endpointEl.value = cfg.endpoint || 'https://ai-api.congnghevietha.vn';
+      if (filterEl) filterEl.checked = cfg.filterFreeOnly !== false;
+      if (rotEl) rotEl.value = cfg.rotationStrategy || 'failover';
+      if (keysEl) keysEl.value = Array.isArray(cfg.apiKeys) ? cfg.apiKeys.join('\n') : '';
+
+      if (modelEl) {
+        const curModel = cfg.model || 'openrouter/auto';
+        const hasOpt = Array.from(modelEl.options || []).some((o) => o.value === curModel);
+        if (!hasOpt && typeof document !== 'undefined') {
+          const opt = document.createElement('option');
+          opt.value = curModel;
+          opt.textContent = curModel;
+          modelEl.appendChild(opt);
+        }
+        modelEl.value = curModel;
+      }
+
+      this._renderAIKeysTable(cfg.apiKeys || []);
+      this._renderAIGeneratedPreview();
+    }
+
+    _bindAIEvents() {
+      if (typeof document === 'undefined') return;
+      const ai = typeof window !== 'undefined' ? window.CTFLAIProvider : null;
+
+      const btnAddKey = safeEl('btn-ai-add-key');
+      if (btnAddKey) {
+        btnAddKey.addEventListener('click', () => {
+          if (window.CTFLSound) window.CTFLSound.click();
+          if (!ai) return;
+          const nextCfg = this._readAIFormConfig();
+          ai.saveConfig(nextCfg);
+          this._renderAIKeysTable(nextCfg.apiKeys);
+          this._showToast(`➕ Đã cập nhật Bể Khóa (${nextCfg.apiKeys.length} key)!`);
+        });
+      }
+
+      const btnSave = safeEl('btn-ai-save-config');
+      if (btnSave) {
+        btnSave.addEventListener('click', () => {
+          if (window.CTFLSound) window.CTFLSound.click();
+          if (!ai) return;
+          const nextCfg = this._readAIFormConfig();
+          ai.saveConfig(nextCfg);
+          this._renderAIKeysTable(nextCfg.apiKeys);
+          this._showToast('💾 Đã lưu cấu hình AI OpenRouter!');
+        });
+      }
+
+      const btnRefreshModels = safeEl('btn-ai-refresh-models');
+      if (btnRefreshModels) {
+        btnRefreshModels.addEventListener('click', async () => {
+          if (window.CTFLSound) window.CTFLSound.click();
+          if (!ai || typeof ai.fetchModels !== 'function') return;
+          const formCfg = this._readAIFormConfig();
+          ai.saveConfig(formCfg);
+          btnRefreshModels.disabled = true;
+          const statusEl = safeEl('ai-gen-status');
+          if (statusEl) statusEl.textContent = '🔄 Đang tải danh sách model từ ' + formCfg.provider + '...';
+          try {
+            const res = await ai.fetchModels(formCfg.provider, formCfg.endpoint, formCfg.filterFreeOnly);
+            const models = Array.isArray(res) ? res : (res && Array.isArray(res.models) ? res.models : []);
+            const modelEl = safeEl('ai-model-select');
+            if (modelEl && models.length > 0) {
+              modelEl.innerHTML = models.map((m) => `
+                <option value="${escapeHtml(m.id)}">${m.isFree ? '🆓 ' : ''}${escapeHtml(m.name || m.id)}</option>
+              `).join('');
+              if (models.some((m) => m.id === formCfg.model)) {
+                modelEl.value = formCfg.model;
+              }
+            }
+            if (statusEl) statusEl.textContent = (res && res.message) ? `✅ ${res.message}` : `✅ Đã tải ${models.length} model từ ${formCfg.provider}!`;
+            this._showToast(`🔄 Đã cập nhật ${models.length} model!`);
+          } catch (err) {
+            if (statusEl) statusEl.textContent = `⚠️ Không tải được danh sách model: ${err.message || err}`;
+          } finally {
+            btnRefreshModels.disabled = false;
+          }
+        });
+      }
+
+      const btnTestKeys = safeEl('btn-ai-test-keys');
+      if (btnTestKeys) {
+        btnTestKeys.addEventListener('click', async () => {
+          if (window.CTFLSound) window.CTFLSound.click();
+          if (!ai || typeof ai.testAllKeys !== 'function') return;
+          const formCfg = this._readAIFormConfig();
+          ai.saveConfig(formCfg);
+          const resultBox = safeEl('ai-test-result-box');
+          if (resultBox) {
+            resultBox.classList.remove('hidden');
+            resultBox.innerHTML = '<span style="color:var(--cyan-bright);">⚡ Đang Ping kiểm tra toàn bộ API Key trong bể...</span>';
+          }
+          btnTestKeys.disabled = true;
+          try {
+            const res = await ai.testAllKeys(formCfg);
+            if (resultBox) {
+              const detailsHtml = (res.details || []).map((d) => `
+                <tr>
+                  <td>#${d.index}</td>
+                  <td class="mono-text">${escapeHtml(d.key_masked || '')}</td>
+                  <td><span class="meta-badge ${d.status === 'active' || d.status === 'ok' ? 'badge-emerald' : 'badge-rose'}">${escapeHtml(d.status)}</span></td>
+                  <td class="mono-text">${d.duration_ms || 0} ms</td>
+                  <td>${escapeHtml(d.message || '')}</td>
+                </tr>
+              `).join('');
+              resultBox.innerHTML = `
+                <div style="font-weight:700; margin-bottom:0.5rem; color:${res.success ? 'var(--emerald-bright)' : 'var(--rose-bright)'};">
+                  ${escapeHtml(res.message || '')} (${res.active_keys || 0}/${res.total_keys || 0} key hoạt động)
+                </div>
+                <table class="tactical-table" style="width:100%; font-size:0.82rem;">
+                  <thead><tr><th>#</th><th>Khóa</th><th>Trạng thái</th><th>Độ trễ</th><th>Chi tiết</th></tr></thead>
+                  <tbody>${detailsHtml}</tbody>
+                </table>
+              `;
+            }
+          } catch (err) {
+            if (resultBox) {
+              resultBox.innerHTML = `<span style="color:var(--rose-bright);">❌ Lỗi kiểm tra kết nối: ${escapeHtml(err.message || err)}</span>`;
+            }
+          } finally {
+            btnTestKeys.disabled = false;
+          }
+        });
+      }
+
+      const btnGenNow = safeEl('btn-ai-generate-now');
+      if (btnGenNow) {
+        btnGenNow.addEventListener('click', async () => {
+          if (window.CTFLSound) window.CTFLSound.click();
+          if (!ai || typeof ai.generateQuestionsFromSyllabus !== 'function') return;
+          const formCfg = this._readAIFormConfig();
+          ai.saveConfig(formCfg);
+
+          const chVal = (safeEl('ai-gen-chapter') && safeEl('ai-gen-chapter').value) || 'all';
+          const chapterId = chVal === 'all' ? 'all' : Number(chVal);
+          const kLevel = (safeEl('ai-gen-klevel') && safeEl('ai-gen-klevel').value) || 'mixed';
+          const count = Number((safeEl('ai-gen-count') && safeEl('ai-gen-count').value) || 10);
+          const statusEl = safeEl('ai-gen-status');
+
+          btnGenNow.disabled = true;
+          if (statusEl) statusEl.textContent = `🚀 AI (${formCfg.model}) đang đọc Giáo trình ISTQB Tiếng Việt và soạn ${count} câu hỏi mới...`;
+
+          try {
+            const targetChapterForAi = chapterId === 'all' ? 4 : chapterId;
+            const aiRes = await ai.generateQuestionsFromSyllabus({ chapterId: targetChapterForAi, count, kLevel });
+            const generated = Array.isArray(aiRes) ? aiRes : (aiRes && Array.isArray(aiRes.questions) ? aiRes.questions : []);
+            this._loadDataPools();
+            if (statusEl) statusEl.textContent = (aiRes && aiRes.message) ? `✅ ${aiRes.message}` : `✅ Đã soạn xong ${generated.length} câu hỏi mới tinh từ Giáo trình!`;
+            this._renderAIGeneratedPreview(generated);
+            this._showToast(`🚀 AI đã soạn xong ${generated.length} câu hỏi mới!`);
+
+            if (count >= 40) {
+              this.switchView('exam');
+              this.startMockExam(true, generated);
+            } else if (generated.length > 0) {
+              const targetCh = chapterId === 'all' ? (generated[0].chapter || 1) : chapterId;
+              this.startArenaSession('chapter', targetCh, generated, `🤖 Đấu Trùm Đề Mới AI (${generated.length} câu)`);
+            }
+          } catch (err) {
+            if (statusEl) statusEl.textContent = `⚠️ ${err.message || 'Lỗi gọi AI'}. Đang chuyển sang Bộ Biến Thể K3 Offline...`;
+            const dyn = ai.generateDynamicK3Questions(count, chapterId === 'all' ? null : chapterId);
+            this._renderAIGeneratedPreview(dyn);
+          } finally {
+            btnGenNow.disabled = false;
+          }
+        });
+      }
+
+      const btnDynK3 = safeEl('btn-dynamic-k3-now');
+      if (btnDynK3) {
+        btnDynK3.addEventListener('click', () => {
+          if (window.CTFLSound) window.CTFLSound.click();
+          if (!ai || typeof ai.generateDynamicK3Questions !== 'function') return;
+          const chVal = (safeEl('ai-gen-chapter') && safeEl('ai-gen-chapter').value) || 'all';
+          const chapterFilter = chVal === 'all' ? null : Number(chVal);
+          const count = Number((safeEl('ai-gen-count') && safeEl('ai-gen-count').value) || 10);
+          const dynQs = ai.generateDynamicK3Questions(count, chapterFilter);
+
+          const statusEl = safeEl('ai-gen-status');
+          if (statusEl) statusEl.textContent = `🎲 Đã tạo tức thì ${dynQs.length} câu hỏi toán K3 số liệu mới tinh (đảo cả A/B/C/D)!`;
+          this._renderAIGeneratedPreview(dynQs);
+
+          if (count >= 40) {
+            this.switchView('exam');
+            this.startMockExam(true, dynQs);
+          } else {
+            this.startArenaSession('k3', chapterFilter || 4, dynQs, `🎲 Đấu Trùm Biến Thể Toán K3 (${dynQs.length} câu mới)`);
+          }
+        });
+      }
     }
   }
 

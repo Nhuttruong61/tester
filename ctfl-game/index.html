@@ -152,6 +152,11 @@
           <span class="nav-tab-text">Bí Kíp &amp; Thành Tựu</span>
           <span class="nav-tab-code">TRA CỨU</span>
         </button>
+        <button class="nav-tab" type="button" data-view="ai">
+          <span class="nav-tab-icon" aria-hidden="true">🤖</span>
+          <span class="nav-tab-text">AI Soạn Đề Mới (OpenRouter)</span>
+          <span class="nav-tab-code">CHỐNG HỌC VẸT</span>
+        </button>
       </div>
     </nav>
   </header>
@@ -166,17 +171,45 @@
       <div class="codex-explorer-card" style="margin-bottom: 1.5rem;">
         <div class="codex-explorer-header">
           <div>
-            <span class="status-badge badge-emerald">BƯỚC 1: HỌC LÝ THUYẾT &amp; VÍ DỤ MẪU TRƯỚC KHI ĐÁNH TRÙM</span>
-            <h2 id="study-heading" class="exam-main-title" style="margin-top:0.35rem;">📚 Học Kiến Thức Từng Mục &amp; Giải Bài Tập Mẫu (6 Chương ISTQB)</h2>
-            <p class="section-hint">Đọc kỹ lý thuyết trọng tâm, mẹo nhớ nhanh và bấm xem lời giải mẫu của từng mục trước khi bước vào đấu trường đánh Trùm!</p>
+            <span class="status-badge badge-emerald">BƯỚC 1: HỌC GIÁO TRÌNH HTML FULL &amp; TƯƠNG TÁC THỰC CHIẾN</span>
+            <h2 id="study-heading" class="exam-main-title" style="margin-top:0.35rem;">📚 Học Giáo Trình Tiếng Việt Full &amp; Đánh Quái Từng Mục (6 Chương ISTQB)</h2>
+            <p class="section-hint">Đọc toàn bộ giáo trình chuẩn v4.0.1 tiếng Việt, diệt Quái Canh Cổng ngay dưới mỗi mục học hoặc mở Phòng Thí Nghiệm Toán K3!</p>
+          </div>
+          <div class="study-search-wrap">
+            <label for="study-search-input" class="sr-only">Tìm kiếm nhanh trong giáo trình full</label>
+            <input id="study-search-input" class="tactical-input" type="search" placeholder="Tìm nhanh mục học, thuật ngữ, K3, BVA, EP..." />
           </div>
         </div>
+
+        <div class="study-toolbar">
+          <div class="study-mode-tabs">
+            <button id="btn-study-mode-full" class="btn btn-sm btn-primary" type="button">
+              📘 Đọc Giáo Trình HTML Full + Đánh Quái Từng Mục
+            </button>
+            <button id="btn-study-mode-sim" class="btn btn-sm btn-secondary" type="button">
+              🧮 Phòng Thí Nghiệm Tương Tác K3 (EP, BVA, Bảng Quyết Định, 3 Điểm)
+            </button>
+          </div>
+          <button id="btn-study-ai-quiz" class="btn btn-sm btn-success" type="button">
+            🤖 Nhờ AI OpenRouter Soạn Bài Tập Mới Từ Mục Đang Học
+          </button>
+        </div>
+
         <div id="study-chapter-tabs" class="filter-pill-group codex-tabs" role="tablist" aria-label="Chọn chương để học">
           <!-- Chapter buttons injected by app.js -->
         </div>
         <div id="study-chapter-overview" class="study-overview-banner">
           <!-- Chapter summary & progress injected by app.js -->
         </div>
+
+        <!-- K3 Interactive Simulator Drawer -->
+        <div id="study-k3-simulator" class="study-k3-simulator hidden" aria-label="Phòng thí nghiệm tương tác K3">
+          <div class="k3-sim-box">
+            <h3 class="card-section-title">🧮 PHÒNG THÍ NGHIỆM TƯƠNG TÁC K3 (EP, BVA, BẢNG QUYẾT ĐỊNH, ƯỚC LƯỢNG 3 ĐIỂM)</h3>
+            <p class="section-hint">Thay đổi các thông số đầu vào để trực quan hóa các giá trị biên (2 giá trị &amp; 3 giá trị) và công thức ước lượng 3 điểm PERT ngay lập tức.</p>
+          </div>
+        </div>
+
         <div id="study-lessons-list" class="study-lessons-grid">
           <!-- Step-by-step interactive lessons injected by app.js -->
         </div>
@@ -279,6 +312,18 @@
         <div class="arena-timer-box" title="Thời gian suy nghĩ câu hỏi">
           <span class="timer-icon" aria-hidden="true">⏱️</span>
           <span id="arena-timer" class="mono-timer">00:00</span>
+        </div>
+      </div>
+
+      <!-- Interactive 2.5D/3D Character Battle Stage -->
+      <div id="arena-battle-stage" class="arena-battle-stage">
+        <canvas id="battle-stage-canvas" width="1100" height="290" aria-label="Sân khấu chiến đấu tương tác giữa Chiến Binh Tester và Đại Trùm Chương"></canvas>
+        <div class="battle-stage-controls">
+          <button id="btn-stage-slash" class="btn btn-sm btn-secondary" type="button" title="Lao lên chém kiếm Plasma vào Trùm">⚔️ Chém Kiếm Plasma</button>
+          <button id="btn-stage-shoot" class="btn btn-sm btn-secondary" type="button" title="Bắn đạn Laser vào Điểm Yếu trên người Trùm">🔫 Bắn Điểm Yếu</button>
+          <button id="btn-stage-shield" class="btn btn-sm btn-secondary" type="button" title="Bật Khiên Năng Lượng giảm 75% sát thương khi Trùm đánh">🛡️ Bật Khiên Đỡ Đòn</button>
+          <button id="btn-stage-ult" class="btn btn-sm btn-primary" type="button" title="Tung Tuyệt Kỹ Orbital Laser khi đầy Nộ">⚡ Tuyệt Kỹ Diệt Trùm (<span id="stage-fury-pct">0%</span>)</button>
+          <button id="btn-arena-ai-gen" class="btn btn-sm btn-success" type="button" title="Dùng AI OpenRouter soạn bộ câu hỏi mới tinh từ Giáo trình cho trận này">🤖 AI Soạn Đề Mới Cho Trùm Này</button>
         </div>
       </div>
 
@@ -515,6 +560,12 @@
         <div class="exam-intro-actions">
           <button id="btn-start-exam" class="btn btn-primary btn-lg" type="button">
             <span aria-hidden="true">🎯</span> Bắt Đầu Kỳ Thi Thử (40 Câu / 60 Phút)
+          </button>
+          <button id="btn-start-ai-exam" class="btn btn-success btn-lg" type="button">
+            <span aria-hidden="true">🤖</span> Thi Đề Mới Tinh Do AI + Bộ Biến Thể Động Tạo (Chống Học Thuộc Lòng)
+          </button>
+          <button id="btn-open-ai-settings" class="btn btn-secondary btn-lg" type="button">
+            <span aria-hidden="true">⚙️</span> Cấu Hình OpenRouter AI
           </button>
         </div>
 
@@ -789,6 +840,173 @@
       </div>
     </section>
 
+    <!-- ===================================================================
+         VIEW 7: AI OPENROUTER CONFIG & DYNAMIC QUESTION GENERATOR (#view-ai)
+         =================================================================== -->
+    <section id="view-ai" class="view-section hidden" aria-labelledby="ai-heading">
+      <div class="codex-explorer-card" style="margin-bottom: 1.5rem;">
+        <div class="codex-explorer-header">
+          <div>
+            <span class="status-badge badge-cyan">KẾT NỐI ĐA NHÀ CUNG CẤP AI &amp; BỂ KHÓA API</span>
+            <h2 id="ai-heading" class="exam-main-title" style="margin-top:0.35rem;">🤖 Trung Tâm AI OpenRouter — Soạn Đề Mới Từ Giáo Trình (Chống Học Vẹt)</h2>
+            <p class="section-hint">Kết nối OpenRouter, Google Gemini, Ollama hoặc OpenAI để AI đọc trực tiếp Giáo trình ISTQB CTFL v4.0.1 Tiếng Việt và sinh câu hỏi mới tinh mỗi lần luyện tập.</p>
+          </div>
+        </div>
+
+        <div class="ai-config-grid">
+          <!-- Left Panel: Provider, Model & API Key Pool -->
+          <div class="ai-panel-card">
+            <h3 class="card-section-title">⚙️ CẤU HÌNH NHÀ CUNG CẤP &amp; BỂ KHÓA API</h3>
+
+            <div class="ai-form-group">
+              <label for="ai-provider-select" class="ai-label">Nhà Cung Cấp AI (Provider)</label>
+              <select id="ai-provider-select" class="tactical-select ai-input-full">
+                <option value="openrouter">🌐 OpenRouter (Khuyên dùng - Hỗ trợ hàng trăm Model &amp; Free Router)</option>
+                <option value="gemini">✨ Google Gemini (Google AI Studio)</option>
+                <option value="ollama">🏠 Ollama / Local AI Server (https://ai-api.congnghevietha.vn / Localhost)</option>
+                <option value="openai">🧠 OpenAI (ChatGPT Official)</option>
+              </select>
+            </div>
+
+            <div class="ai-form-group">
+              <label for="ai-endpoint-input" class="ai-label">Địa chỉ Endpoint (Dành cho Ollama / Custom Server)</label>
+              <input id="ai-endpoint-input" class="tactical-input ai-input-full" type="url" value="https://ai-api.congnghevietha.vn" placeholder="https://ai-api.congnghevietha.vn" />
+            </div>
+
+            <div class="ai-form-group">
+              <div class="ai-label-row">
+                <label for="ai-model-select" class="ai-label">Mô Hình AI (Model)</label>
+                <label class="ai-checkbox-label" for="ai-filter-free">
+                  <input id="ai-filter-free" type="checkbox" />
+                  <span>Chỉ hiện Model Miễn Phí (:free)</span>
+                </label>
+              </div>
+              <div class="ai-form-row">
+                <select id="ai-model-select" class="tactical-select" style="flex:1;">
+                  <option value="openrouter/auto">openrouter/auto (Tự động chọn Model tối ưu)</option>
+                  <option value="google/gemini-2.0-flash-exp:free">google/gemini-2.0-flash-exp:free (Miễn phí)</option>
+                  <option value="google/gemini-2.0-flash-001">google/gemini-2.0-flash-001</option>
+                  <option value="meta-llama/llama-3.3-70b-instruct:free">meta-llama/llama-3.3-70b-instruct:free (Miễn phí)</option>
+                  <option value="deepseek/deepseek-chat-v3-0324:free">deepseek/deepseek-chat-v3-0324:free (Miễn phí)</option>
+                </select>
+                <button id="btn-ai-refresh-models" class="btn btn-secondary btn-sm" type="button">
+                  🔄 Tải Danh Sách Model
+                </button>
+              </div>
+            </div>
+
+            <div class="ai-form-group">
+              <label for="ai-rotation-select" class="ai-label">Chiến Lược Xoay Vòng Khóa (Key Rotation)</label>
+              <select id="ai-rotation-select" class="tactical-select ai-input-full">
+                <option value="failover">Failover tức thì (0s) — Tự chuyển key dự phòng ngay khi gặp lỗi/hết hạn mức</option>
+                <option value="round-robin">Round-Robin (Xoay vòng đều) — Chia tải đều qua tất cả API Key</option>
+              </select>
+            </div>
+
+            <div class="ai-form-group ai-keys-pool-box">
+              <div class="ai-label-row">
+                <label for="ai-keys-textarea" class="ai-label">Bể Khóa API (Dán 1 hoặc nhiều Key, cách nhau bằng dấu phẩy hoặc xuống dòng)</label>
+                <a class="ai-key-link" href="https://openrouter.ai/keys" target="_blank" rel="noopener">🔑 Lấy Key OpenRouter →</a>
+              </div>
+              <textarea id="ai-keys-textarea" class="tactical-input ai-textarea" rows="3" placeholder="sk-or-v1-xxxx...&#10;sk-or-v1-yyyy..."></textarea>
+              <div class="ai-key-actions">
+                <button id="btn-ai-add-key" class="btn btn-secondary btn-sm" type="button">➕ Thêm Vào Bể Khóa</button>
+                <button id="btn-ai-save-config" class="btn btn-primary btn-sm" type="button">💾 Lưu Cấu Hình AI</button>
+                <button id="btn-ai-test-keys" class="btn btn-success btn-sm" type="button">⚡ Kiểm Tra Toàn Bộ Key (Ping &amp; Đo ms)</button>
+              </div>
+
+              <div class="ai-keys-table-wrap">
+                <table class="tactical-table ai-keys-table">
+                  <thead>
+                    <tr>
+                      <th>#</th>
+                      <th>Nhà Cung Cấp</th>
+                      <th>Mã Key (Ẩn)</th>
+                      <th>Trạng Thái</th>
+                      <th>Thao Tác</th>
+                    </tr>
+                  </thead>
+                  <tbody id="ai-keys-table-body">
+                    <tr>
+                      <td colspan="5" class="text-muted" style="text-align:center;">Chưa có API Key nào được lưu. Dán key ở trên để thêm vào bể khóa.</td>
+                    </tr>
+                  </tbody>
+                </table>
+              </div>
+
+              <div id="ai-test-result-box" class="ai-test-result-box hidden" aria-live="polite">
+                <!-- Ping results injected by app.js -->
+              </div>
+            </div>
+          </div>
+
+          <!-- Right Panel: AI Question Generator Center -->
+          <div class="ai-panel-card">
+            <h3 class="card-section-title">🚀 TRUNG TÂM AI SOẠN ĐỀ THI MỚI DỰA VÀO GIÁO TRÌNH FULL</h3>
+            <p class="section-hint" style="margin-bottom:1rem;">
+              Hệ thống trích xuất nguyên văn nội dung từ Giáo trình ISTQB CTFL v4.0.1 Tiếng Việt làm ngữ cảnh (RAG) gửi cho AI soạn đề mới, hoặc dùng Bộ Biến Thể Toán K3 đổi số liệu tự động không cần mạng!
+            </p>
+
+            <div class="ai-gen-controls">
+              <div class="ai-form-group">
+                <label for="ai-gen-chapter" class="ai-label">Phạm Vi Giáo Trình</label>
+                <select id="ai-gen-chapter" class="tactical-select ai-input-full">
+                  <option value="all">Tất cả 6 Chương (Đề Tổng Hợp Chuẩn ISTQB)</option>
+                  <option value="1">Chương 1: Cơ bản về Kiểm thử</option>
+                  <option value="2">Chương 2: Kiểm thử trong Vòng đời Phát triển Phần mềm</option>
+                  <option value="3">Chương 3: Kiểm thử Tĩnh</option>
+                  <option value="4">Chương 4: Phân tích và Thiết kế Kiểm thử</option>
+                  <option value="5">Chương 5: Quản lý các Hoạt động Kiểm thử</option>
+                  <option value="6">Chương 6: Công cụ Kiểm thử</option>
+                </select>
+              </div>
+
+              <div class="ai-form-row">
+                <div class="ai-form-group" style="flex:1;">
+                  <label for="ai-gen-klevel" class="ai-label">Mức Độ Nhận Thức</label>
+                  <select id="ai-gen-klevel" class="tactical-select ai-input-full">
+                    <option value="mixed">Hỗn hợp K1 - K3 (Chuẩn thi thật)</option>
+                    <option value="K3">Chuyên sâu K3 (Tình huống &amp; Tính toán)</option>
+                    <option value="K1-K2">Lý thuyết &amp; Hiểu K1 - K2</option>
+                  </select>
+                </div>
+
+                <div class="ai-form-group" style="flex:1;">
+                  <label for="ai-gen-count" class="ai-label">Số Lượng Câu Hỏi</label>
+                  <select id="ai-gen-count" class="tactical-select ai-input-full">
+                    <option value="5">5 Câu (Khởi động nhanh)</option>
+                    <option value="10" selected>10 Câu (Đấu Trùm Chương)</option>
+                    <option value="20">20 Câu (Luyện chuyên sâu)</option>
+                    <option value="40">40 Câu (Đề Thi Thử Full)</option>
+                  </select>
+                </div>
+              </div>
+
+              <div class="ai-gen-actions">
+                <button id="btn-ai-generate-now" class="btn btn-primary btn-lg" type="button" style="width:100%;">
+                  🚀 AI Soạn Bộ Câu Hỏi Mới Tinh Từ Giáo Trình &amp; Vào Thi Ngay!
+                </button>
+                <button id="btn-dynamic-k3-now" class="btn btn-success" type="button" style="width:100%;">
+                  🎲 Tạo Nhanh Đề Biến Thể Toán K3 Mới (Không Cần API Key - Đảo Số Liệu &amp; Đáp Án)
+                </button>
+              </div>
+
+              <div id="ai-gen-status" class="ai-gen-status" aria-live="polite">
+                Sẵn sàng soạn đề mới từ Giáo trình ISTQB CTFL v4.0.1 Tiếng Việt.
+              </div>
+            </div>
+
+            <div class="ai-preview-header">
+              <h4 class="card-section-title" style="margin-top:1.25rem;">📋 XEM TRƯỚC CÂU HỎI AI VỪA SOẠN</h4>
+            </div>
+            <div id="ai-generated-preview" class="ai-generated-preview">
+              <p class="text-muted">Chưa có bộ đề AI nào được tạo trong phiên này. Bấm một trong hai nút ở trên để tạo đề mới!</p>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
   </main>
 
   <!-- =====================================================================
@@ -821,8 +1039,11 @@
   <!-- Scripts (Strict Loading Order) -->
   <script src="js/data-chap123.js"></script>
   <script src="js/data-chap456.js"></script>
+  <script src="js/syllabus-full-vi.js"></script>
+  <script src="js/ai-provider.js"></script>
   <script src="js/three.min.js"></script>
   <script src="js/world3d.js"></script>
+  <script src="js/battle-stage.js"></script>
   <script src="js/sound-fx.js"></script>
   <script src="js/app.js"></script>
 </body>

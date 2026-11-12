@@ -2908,3 +2908,419 @@ body.arena-3d-battle #view-arena .combat-hud-grid {
   border-left: 3px solid var(--emerald-bright);
 }
 
+
+/* ==========================================================================
+   13. ARENA INTERACTIVE BATTLE STAGE (#arena-battle-stage)
+   ========================================================================== */
+.arena-battle-stage {
+  position: relative;
+  margin-bottom: 1.15rem;
+  background: radial-gradient(circle at 50% 25%, rgba(6, 182, 212, 0.14), rgba(5, 8, 15, 0.94));
+  border: 1px solid var(--border-cyan);
+  border-radius: var(--radius-lg);
+  overflow: hidden;
+  box-shadow: var(--shadow-card), var(--shadow-glow-cyan);
+}
+
+#battle-stage-canvas {
+  display: block;
+  width: 100%;
+  height: auto;
+  max-height: 300px;
+  background: transparent;
+}
+
+.battle-stage-controls {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: center;
+  gap: 0.6rem;
+  padding: 0.75rem 1rem;
+  background: rgba(9, 13, 22, 0.85);
+  border-top: 1px solid var(--border-subtle);
+}
+
+[data-theme="light"] .arena-battle-stage {
+  background: radial-gradient(circle at 50% 25%, rgba(8, 145, 178, 0.12), #0F172A);
+}
+
+[data-theme="light"] .battle-stage-controls {
+  background: rgba(15, 23, 42, 0.92);
+}
+
+/* ==========================================================================
+   14. STUDY TOOLBAR, FULL HTML SYLLABUS & K3 SIMULATOR (#view-study)
+   ========================================================================== */
+.study-search-wrap {
+  min-width: min(100%, 320px);
+}
+
+.study-toolbar {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.75rem;
+  margin: 0.9rem 0 1rem;
+  padding: 0.85rem 1rem;
+  background: var(--bg-obsidian);
+  border: 1px solid var(--border-subtle);
+  border-radius: var(--radius-md);
+}
+
+.study-mode-tabs {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.55rem;
+}
+
+/* K3 Interactive Simulator */
+.study-k3-simulator {
+  margin-bottom: 1.25rem;
+}
+
+.k3-sim-box {
+  background: var(--bg-slate-elevated);
+  border: 1px solid var(--border-cyan);
+  border-radius: var(--radius-md);
+  padding: 1.25rem;
+  box-shadow: var(--shadow-card);
+}
+
+.k3-sim-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+  gap: 1rem;
+  margin-top: 1rem;
+}
+
+.k3-sim-card {
+  background: var(--bg-obsidian);
+  border: 1px solid var(--border-subtle);
+  border-radius: var(--radius-sm);
+  padding: 1rem;
+}
+
+.k3-sim-inputs {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(110px, 1fr));
+  gap: 0.6rem;
+  margin: 0.75rem 0;
+}
+
+.k3-sim-result {
+  margin-top: 0.75rem;
+  padding: 0.85rem;
+  border-radius: var(--radius-xs);
+  background: var(--cyan-soft);
+  border-left: 3px solid var(--cyan-bright);
+  font-family: var(--font-mono);
+  font-size: 0.86rem;
+  line-height: 1.55;
+}
+
+/* Full Vietnamese HTML Syllabus Content */
+.syllabus-full-section {
+  margin-top: 0.85rem;
+  color: var(--text-secondary);
+  font-size: 0.95rem;
+  line-height: 1.72;
+}
+
+.syllabus-full-section h4,
+.syllabus-full-section h5 {
+  font-family: var(--font-display);
+  color: var(--cyan-bright);
+  margin: 1.15rem 0 0.5rem;
+  font-size: 1.04rem;
+}
+
+.syllabus-full-section p {
+  margin-bottom: 0.7rem;
+}
+
+.syllabus-full-section ul,
+.syllabus-full-section ol {
+  margin: 0.5rem 0 0.9rem 1.35rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.35rem;
+}
+
+.syllabus-full-section li strong {
+  color: var(--text-primary);
+}
+
+.syllabus-full-section code {
+  font-family: var(--font-mono);
+  font-size: 0.85em;
+  background: var(--cyan-soft);
+  color: var(--cyan-bright);
+  padding: 0.12rem 0.38rem;
+  border-radius: var(--radius-xs);
+}
+
+.syllabus-full-section table {
+  width: 100%;
+  border-collapse: collapse;
+  margin: 0.9rem 0;
+  font-size: 0.88rem;
+  background: var(--bg-slate);
+  border: 1px solid var(--border-subtle);
+  border-radius: var(--radius-sm);
+  overflow: hidden;
+}
+
+.syllabus-full-section th,
+.syllabus-full-section td {
+  padding: 0.65rem 0.8rem;
+  border: 1px solid var(--border-subtle);
+  text-align: left;
+  vertical-align: top;
+}
+
+.syllabus-full-section th {
+  background: var(--bg-slate-elevated);
+  color: var(--cyan-bright);
+  font-weight: 700;
+}
+
+.syllabus-keywords-box {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.45rem;
+  margin: 0.75rem 0;
+}
+
+.syllabus-keyword-tag {
+  font-family: var(--font-mono);
+  font-size: 0.76rem;
+  padding: 0.2rem 0.55rem;
+  border-radius: 999px;
+  background: var(--amber-soft);
+  border: 1px solid var(--border-amber);
+  color: var(--amber-bright);
+}
+
+.syllabus-objectives-box {
+  margin: 0.85rem 0;
+  padding: 0.9rem 1rem;
+  border-radius: var(--radius-sm);
+  background: var(--emerald-soft);
+  border-left: 3px solid var(--emerald-bright);
+}
+
+/* Interactive Mini Guardian Battle inside Study Section */
+.mini-lesson-battle-box {
+  margin-top: 1.1rem;
+  padding: 1.05rem;
+  border-radius: var(--radius-md);
+  background: linear-gradient(135deg, rgba(244, 63, 94, 0.08), rgba(6, 182, 212, 0.08));
+  border: 1px solid var(--border-rose);
+}
+
+.mini-battle-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.75rem;
+  flex-wrap: wrap;
+  margin-bottom: 0.75rem;
+}
+
+.mini-battle-hp-row {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  margin-bottom: 0.85rem;
+}
+
+.mini-battle-options {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(230px, 1fr));
+  gap: 0.55rem;
+  margin-top: 0.75rem;
+}
+
+.mini-battle-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.55rem;
+  margin-top: 0.85rem;
+}
+
+/* ==========================================================================
+   15. AI OPENROUTER CONFIG & GENERATOR VIEW (#view-ai)
+   ========================================================================== */
+.ai-config-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 1.25rem;
+  margin-top: 1.15rem;
+}
+
+.ai-panel-card {
+  background: var(--bg-obsidian);
+  border: 1px solid var(--border-subtle);
+  border-radius: var(--radius-md);
+  padding: 1.25rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.9rem;
+}
+
+.ai-form-group {
+  display: flex;
+  flex-direction: column;
+  gap: 0.4rem;
+}
+
+.ai-form-row {
+  display: flex;
+  align-items: center;
+  gap: 0.65rem;
+  flex-wrap: wrap;
+}
+
+.ai-label {
+  font-size: 0.82rem;
+  font-weight: 700;
+  color: var(--text-secondary);
+  letter-spacing: 0.02em;
+}
+
+.ai-label-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.6rem;
+  flex-wrap: wrap;
+}
+
+.ai-checkbox-label {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  font-size: 0.8rem;
+  color: var(--emerald-bright);
+  cursor: pointer;
+}
+
+.ai-input-full {
+  width: 100%;
+}
+
+.ai-textarea {
+  width: 100%;
+  min-height: 76px;
+  resize: vertical;
+  font-family: var(--font-mono);
+  font-size: 0.82rem;
+  line-height: 1.45;
+}
+
+.ai-keys-pool-box {
+  padding: 0.9rem;
+  border-radius: var(--radius-sm);
+  background: var(--bg-slate-elevated);
+  border: 1px solid var(--border-subtle);
+}
+
+.ai-key-link {
+  font-size: 0.78rem;
+  font-weight: 700;
+  color: var(--cyan-bright);
+  text-decoration: none;
+}
+
+.ai-key-link:hover {
+  text-decoration: underline;
+}
+
+.ai-key-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+  margin-top: 0.45rem;
+}
+
+.ai-keys-table-wrap {
+  margin-top: 0.75rem;
+  overflow-x: auto;
+}
+
+.ai-keys-table {
+  font-size: 0.8rem;
+}
+
+.ai-test-result-box {
+  margin-top: 0.75rem;
+  padding: 0.8rem 0.95rem;
+  border-radius: var(--radius-xs);
+  background: var(--cyan-soft);
+  border: 1px solid var(--border-cyan);
+  font-family: var(--font-mono);
+  font-size: 0.8rem;
+  line-height: 1.5;
+}
+
+.ai-gen-controls {
+  display: flex;
+  flex-direction: column;
+  gap: 0.85rem;
+}
+
+.ai-gen-actions {
+  display: flex;
+  flex-direction: column;
+  gap: 0.65rem;
+}
+
+.ai-gen-status {
+  padding: 0.75rem 0.95rem;
+  border-radius: var(--radius-sm);
+  background: var(--bg-slate-elevated);
+  border-left: 3px solid var(--cyan-bright);
+  font-size: 0.86rem;
+  color: var(--text-secondary);
+}
+
+.ai-generated-preview {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+  max-height: 430px;
+  overflow-y: auto;
+  padding-right: 0.25rem;
+}
+
+.ai-preview-item {
+  padding: 0.9rem;
+  border-radius: var(--radius-sm);
+  background: var(--bg-slate-elevated);
+  border: 1px solid var(--border-subtle);
+}
+
+.ai-preview-item strong {
+  color: var(--cyan-bright);
+}
+
+@media (max-width: 960px) {
+  .ai-config-grid {
+    grid-template-columns: 1fr;
+  }
+}
+
+@media (max-width: 640px) {
+  .battle-stage-controls {
+    justify-content: stretch;
+  }
+  .battle-stage-controls .btn {
+    flex: 1 1 calc(50% - 0.35rem);
+  }
+  .study-toolbar {
+    flex-direction: column;
+    align-items: stretch;
+  }
+}
