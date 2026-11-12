@@ -1,0 +1,176 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>CTFL Thợ Săn Bug 3D: Đấu Trường Săn Lỗi — Huấn Luyện ISTQB v4.0.1</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@500;700&family=Plus+Jakarta+Sans:wght@400;600;700&family=Space+Grotesk:wght@600;700&display=swap" rel="stylesheet" />
+  <style>
+    :root {
+      --bg: #090D16;
+      --card: #111827;
+      --border: rgba(255, 255, 255, 0.08);
+      --cyan: #06B6D4;
+      --cyan-bright: #22D3EE;
+      --emerald: #10B981;
+      --amber: #F59E0B;
+      --text: #F8FAFC;
+      --muted: #94A3B8;
+    }
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      min-height: 100vh;
+      background-color: var(--bg);
+      background-image:
+        linear-gradient(to right, rgba(6, 182, 212, 0.04) 1px, transparent 1px),
+        linear-gradient(to bottom, rgba(6, 182, 212, 0.04) 1px, transparent 1px),
+        radial-gradient(circle at 50% 0%, rgba(6, 182, 212, 0.16), transparent 60%);
+      background-size: 32px 32px, 32px 32px, 100% 100%;
+      color: var(--text);
+      font-family: 'Plus Jakarta Sans', system-ui, sans-serif;
+      display: grid;
+      place-items: center;
+      padding: 1.5rem;
+    }
+    .launcher-shell {
+      max-width: 820px;
+      width: 100%;
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-top: 3px solid var(--cyan);
+      border-radius: 14px;
+      padding: 2.5rem;
+      box-shadow: 0 24px 50px -12px rgba(0, 0, 0, 0.7);
+    }
+    .eyebrow {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.5rem;
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 0.75rem;
+      color: var(--cyan-bright);
+      background: rgba(6, 182, 212, 0.12);
+      border: 1px solid rgba(6, 182, 212, 0.35);
+      padding: 0.25rem 0.65rem;
+      border-radius: 4px;
+      margin-bottom: 1rem;
+    }
+    h1 {
+      font-family: 'Space Grotesk', sans-serif;
+      font-size: clamp(1.75rem, 3.5vw, 2.5rem);
+      line-height: 1.15;
+      margin-bottom: 0.75rem;
+    }
+    h1 span { color: var(--cyan-bright); }
+    p.lead {
+      color: var(--muted);
+      font-size: 1rem;
+      line-height: 1.6;
+      margin-bottom: 1.75rem;
+    }
+    .features-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(175px, 1fr));
+      gap: 0.85rem;
+      margin-bottom: 2rem;
+    }
+    .feat-box {
+      background: #090D16;
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 0.9rem;
+    }
+    .feat-code {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 0.72rem;
+      color: var(--cyan-bright);
+      display: block;
+      margin-bottom: 0.25rem;
+    }
+    .feat-title {
+      font-weight: 700;
+      font-size: 0.92rem;
+    }
+    .cta-row {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 0.85rem;
+      align-items: center;
+    }
+    .btn-launch {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.6rem;
+      padding: 0.95rem 1.75rem;
+      background: var(--cyan);
+      color: #041016;
+      font-weight: 700;
+      font-size: 1.02rem;
+      text-decoration: none;
+      border-radius: 8px;
+      box-shadow: 0 0 24px rgba(6, 182, 212, 0.35);
+      transition: transform 150ms ease, background 150ms ease;
+    }
+    .btn-launch:hover {
+      background: var(--cyan-bright);
+      transform: translateY(-2px);
+    }
+    .btn-doc {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.45rem;
+      padding: 0.85rem 1.25rem;
+      background: #1A2333;
+      color: var(--text);
+      font-weight: 600;
+      font-size: 0.9rem;
+      text-decoration: none;
+      border-radius: 8px;
+      border: 1px solid rgba(255, 255, 255, 0.14);
+      transition: border-color 150ms ease;
+    }
+    .btn-doc:hover {
+      border-color: var(--cyan-bright);
+    }
+  </style>
+</head>
+<body>
+  <main class="launcher-shell">
+    <div class="eyebrow">🕹️ ĐẤU TRƯỜNG 3D THREE.JS • CHUẨN QUỐC TẾ ISTQB CTFL v4.0.1</div>
+    <h1>CTFL Thợ Săn Bug 3D: <span>Đấu Trường Săn Lỗi</span></h1>
+    <p class="lead">
+      Trò chơi nhập vai hành động 3D kết hợp luyện thi chứng chỉ Quốc tế ISTQB Foundation Level v4.0.1 hoàn toàn bằng Tiếng Việt. Điều khiển Chiến Binh Tester 3D di chuyển, bắn hạ quái vật Bug bằng đạn Laser, khiêu chiến 6 Đại Trùm Chương, phản xạ Đập Bug 60 Giây, lật Thẻ Nhớ 3D và thi thử 40 câu / 60 phút chuẩn quốc tế.
+    </p>
+
+    <div class="features-grid">
+      <div class="feat-box">
+        <span class="feat-code">01 // THẾ GIỚI 3D &amp; 6 TRÙM</span>
+        <div class="feat-title">Điều Khiển Nhân Vật 3D &amp; Diệt 6 Trùm</div>
+      </div>
+      <div class="feat-box">
+        <span class="feat-code">02 // THI THỬ QUỐC TẾ</span>
+        <div class="feat-title">40 Câu / 60 Phút Chuẩn ISTQB</div>
+      </div>
+      <div class="feat-box">
+        <span class="feat-code">03 // ĐẬP BUG 60 GIÂY</span>
+        <div class="feat-title">Phản Xạ Tốc Độ &amp; Sổ Thù Vặt</div>
+      </div>
+      <div class="feat-box">
+        <span class="feat-code">04 // THẺ NHỚ 3D &amp; BÍ KÍP</span>
+        <div class="feat-title">Lật Thẻ Nhớ 3D &amp; Bí Kíp Toàn Thư</div>
+      </div>
+    </div>
+
+    <div class="cta-row">
+      <a class="btn-launch" href="ctfl-game/index.html">
+        🕹️ Vào Thế Giới 3D Săn Bug Ngay
+      </a>
+      <a class="btn-doc" href="ISTQB_CTFL_Syllabus_v4.0.1_VI.html" target="_blank" rel="noopener">
+        📘 Đọc Bản Dịch Giáo Trình v4.0.1 (HTML)
+      </a>
+    </div>
+  </main>
+</body>
+</html>

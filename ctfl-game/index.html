@@ -1,0 +1,829 @@
+<!DOCTYPE html>
+<html lang="vi" data-theme="dark">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Đấu Trường Diệt Bug 3D — Học &amp; Luyện Thi ISTQB CTFL v4.0.1</title>
+  <meta name="description" content="Hệ thống học lý thuyết, thực hành tương tác 3D và mô phỏng thi chứng chỉ ISTQB CTFL v4.0.1 tiếng Việt." />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:ital,wght@0,400;0,500;0,600;0,700;1,400&family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=Space+Grotesk:wght@500;600;700&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="css/styles.css" />
+</head>
+<body>
+  <!-- Full-Screen Interactive 3D Three.js World Canvas -->
+  <canvas id="world3d-canvas" aria-label="Thế giới 3D Đấu Trường Săn Lỗi"></canvas>
+
+  <!-- Background Particle & Tactical FX Canvas -->
+  <canvas id="fx-canvas" aria-hidden="true"></canvas>
+
+  <!-- 3D Action Control Bar & Interactive Guide HUD -->
+  <div id="world3d-hud" class="world3d-hud" role="region" aria-label="Điều khiển nhân vật 3D">
+    <div class="world3d-guide">
+      <span><strong>🕹️ Điều khiển 3D:</strong> <kbd>WASD</kbd>/<kbd>Mũi tên</kbd> Di chuyển</span>
+      <span>• <kbd>Click</kbd>/<kbd>F</kbd> Bắn Laser diệt Bug</span>
+      <span>• <kbd>Space</kbd> Lướt nhanh</span>
+      <span>• <kbd>E</kbd>/Click Trùm để Khiêu chiến</span>
+    </div>
+    <div class="world3d-actions">
+      <button id="btn-3d-shoot" class="btn btn-sm btn-secondary" type="button">🔫 Bắn Laser [F]</button>
+      <button id="btn-3d-dash" class="btn btn-sm btn-secondary" type="button">💨 Lướt [Space]</button>
+      <button id="btn-3d-interact" class="btn btn-sm btn-secondary" type="button">⚔️ Khiêu Chiến [E]</button>
+      <button id="btn-toggle-ui-panel" class="btn btn-sm btn-primary" type="button">🕹️ Đi Dạo &amp; Bắn Bug 3D Toàn Màn Hình</button>
+    </div>
+  </div>
+
+  <!-- Floating Damage / Toast Notification Layer -->
+  <div id="floating-fx-layer" class="floating-fx-layer" aria-live="polite"></div>
+  <div id="toast-container" class="toast-container" aria-live="polite"></div>
+
+  <!-- Top HUD Navigation & Player Command Bar -->
+  <header class="hud-header" role="banner">
+    <div class="hud-container">
+      <!-- Brand + Player Profile Badge -->
+      <div class="hud-brand-profile">
+        <div class="brand-badge">
+          <div class="brand-emblem" aria-hidden="true">
+            <span class="emblem-core">QA</span>
+            <span class="emblem-ring"></span>
+          </div>
+          <div class="brand-titles">
+            <span class="brand-tag">GIÁO TRÌNH ISTQB CTFL v4.0.1</span>
+            <h1 class="brand-name">ĐẤU TRƯỜNG <span class="text-cyan">DIỆT BUG 3D</span></h1>
+          </div>
+        </div>
+
+        <div class="hud-divider" aria-hidden="true"></div>
+
+        <!-- Player Tactical Stats Badge -->
+        <div class="player-profile-badge" aria-label="Hồ sơ năng lực chiến binh QA">
+          <div class="level-orb">
+            <span id="hud-level" class="level-num">1</span>
+          </div>
+          <div class="profile-details">
+            <div class="profile-top-row">
+              <span id="hud-rank" class="rank-badge">🪲 Tân Binh Diệt Bug</span>
+              <span id="hud-xp-text" class="xp-text">0 / 200 XP</span>
+            </div>
+            <div class="xp-bar-track" role="progressbar" aria-label="Tiến độ kinh nghiệm XP" aria-valuemin="0" aria-valuemax="100" aria-valuenow="0">
+              <div id="hud-xp-bar" class="xp-bar-fill" style="width: 0%;"></div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Tactical Telemetry Counters -->
+      <div class="hud-telemetry" aria-label="Chỉ số chiến đấu">
+        <div class="telemetry-pill streak-pill" title="Chuỗi ngày học liên tiếp">
+          <span class="telemetry-icon" aria-hidden="true">🔥</span>
+          <div class="telemetry-data">
+            <span class="telemetry-label">CHUỖI NGÀY</span>
+            <span id="hud-streak" class="telemetry-val">1</span>
+          </div>
+        </div>
+        <div class="telemetry-pill bugs-pill" title="Tổng số Bug đã tiêu diệt">
+          <span class="telemetry-icon" aria-hidden="true">🐞</span>
+          <div class="telemetry-data">
+            <span class="telemetry-label">BUG ĐÃ DIỆT</span>
+            <span id="hud-bugs-smashed" class="telemetry-val">0</span>
+          </div>
+        </div>
+        <div class="telemetry-pill accuracy-pill" title="Độ chính xác trung bình">
+          <span class="telemetry-icon" aria-hidden="true">🎯</span>
+          <div class="telemetry-data">
+            <span class="telemetry-label">CHÍNH XÁC</span>
+            <span id="hud-accuracy" class="telemetry-val">100%</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Utility Controls -->
+      <div class="hud-utilities">
+        <button id="btn-sound-toggle" class="icon-btn" type="button" aria-label="Bật/Tắt âm thanh chiến thuật" title="Bật/Tắt Âm thanh">
+          <span class="util-icon" aria-hidden="true">🔊</span>
+          <span class="util-label">ÂM THANH</span>
+        </button>
+        <button id="btn-theme-toggle" class="icon-btn" type="button" aria-label="Chuyển đổi giao diện Sáng/Tối" title="Chuyển chế độ Sáng / Tối">
+          <span class="util-icon" aria-hidden="true">🌗</span>
+          <span class="util-label">GIAO DIỆN</span>
+        </button>
+        <button id="btn-reset-progress" class="icon-btn icon-btn-danger" type="button" aria-label="Đặt lại toàn bộ dữ liệu" title="Đặt lại tiến trình học tập">
+          <span class="util-icon" aria-hidden="true">↺</span>
+          <span class="util-label">ĐẶT LẠI</span>
+        </button>
+      </div>
+    </div>
+
+    <!-- Primary Tactical Mode Navigation Tabs -->
+    <nav class="hud-nav" aria-label="Chế độ huấn luyện chính">
+      <div class="hud-nav-inner">
+        <button class="nav-tab" type="button" data-view="study">
+          <span class="nav-tab-icon" aria-hidden="true">📚</span>
+          <span class="nav-tab-text">1. Học Kiến Thức (6 Chương)</span>
+          <span class="nav-tab-code">BÀI HỌC</span>
+        </button>
+        <button class="nav-tab active" type="button" data-view="campaign">
+          <span class="nav-tab-icon" aria-hidden="true">⚔️</span>
+          <span class="nav-tab-text">2. Chiến Dịch Đánh Trùm</span>
+          <span class="nav-tab-code">6 CHƯƠNG</span>
+        </button>
+        <button class="nav-tab" type="button" data-view="world3d">
+          <span class="nav-tab-icon" aria-hidden="true">🕹️</span>
+          <span class="nav-tab-text">Thế Giới 3D (Săn Bug)</span>
+          <span class="nav-tab-code">ĐI DẠO 3D</span>
+        </button>
+        <button class="nav-tab" type="button" data-view="exam">
+          <span class="nav-tab-icon" aria-hidden="true">🎓</span>
+          <span class="nav-tab-text">Thi Thử ISTQB Chuẩn</span>
+          <span class="nav-tab-code">40 CÂU</span>
+        </button>
+        <button class="nav-tab" type="button" data-view="blitz">
+          <span class="nav-tab-icon" aria-hidden="true">⚡</span>
+          <span class="nav-tab-text">60 Giây Đập Bug</span>
+          <span class="nav-tab-code">60 GIÂY</span>
+        </button>
+        <button class="nav-tab" type="button" data-view="flashcards">
+          <span class="nav-tab-icon" aria-hidden="true">🃏</span>
+          <span class="nav-tab-text">Thẻ Nhớ Thuật Ngữ</span>
+          <span class="nav-tab-code">LẬT THẺ</span>
+        </button>
+        <button class="nav-tab" type="button" data-view="codex">
+          <span class="nav-tab-icon" aria-hidden="true">📖</span>
+          <span class="nav-tab-text">Bí Kíp &amp; Thành Tựu</span>
+          <span class="nav-tab-code">TRA CỨU</span>
+        </button>
+      </div>
+    </nav>
+  </header>
+
+  <!-- Main Workspace -->
+  <main class="main-workspace" role="main">
+
+    <!-- ===================================================================
+         VIEW 0: HỌC KIẾN THỨC TRƯỚC KHI THI (#view-study)
+         =================================================================== -->
+    <section id="view-study" class="view-section hidden" aria-labelledby="study-heading">
+      <div class="codex-explorer-card" style="margin-bottom: 1.5rem;">
+        <div class="codex-explorer-header">
+          <div>
+            <span class="status-badge badge-emerald">BƯỚC 1: HỌC LÝ THUYẾT &amp; VÍ DỤ MẪU TRƯỚC KHI ĐÁNH TRÙM</span>
+            <h2 id="study-heading" class="exam-main-title" style="margin-top:0.35rem;">📚 Học Kiến Thức Từng Mục &amp; Giải Bài Tập Mẫu (6 Chương ISTQB)</h2>
+            <p class="section-hint">Đọc kỹ lý thuyết trọng tâm, mẹo nhớ nhanh và bấm xem lời giải mẫu của từng mục trước khi bước vào đấu trường đánh Trùm!</p>
+          </div>
+        </div>
+        <div id="study-chapter-tabs" class="filter-pill-group codex-tabs" role="tablist" aria-label="Chọn chương để học">
+          <!-- Chapter buttons injected by app.js -->
+        </div>
+        <div id="study-chapter-overview" class="study-overview-banner">
+          <!-- Chapter summary & progress injected by app.js -->
+        </div>
+        <div id="study-lessons-list" class="study-lessons-grid">
+          <!-- Step-by-step interactive lessons injected by app.js -->
+        </div>
+      </div>
+    </section>
+
+    <!-- ===================================================================
+         VIEW 1: CAMPAIGN COMMAND CENTER (#view-campaign)
+         =================================================================== -->
+    <section id="view-campaign" class="view-section active" aria-labelledby="campaign-heading">
+      <!-- Tactical Hero Banner + Quick Missions -->
+      <div class="campaign-hero">
+        <div class="hero-main-card">
+          <div class="hero-eyebrow">
+            <span class="status-dot pulse-cyan"></span>
+            <span>TRUNG TÂM HUẤN LUYỆN KIỂM THỬ PHẦN MỀM 3D — GIÁO TRÌNH v4.0.1</span>
+          </div>
+          <h2 id="campaign-heading" class="hero-title">Học Kiến Thức &amp; Tiêu Diệt 6 Đại Trùm Lỗi Hệ Thống</h2>
+          <p class="hero-desc">
+            <strong>Lời khuyên cho người mới:</strong> Hãy bấm <strong>"📚 Bước 1: Học Lý Thuyết &amp; Ví Dụ Mẫu"</strong> ở từng Chương để nắm vững kiến thức và cách giải trước, sau đó mới bấm <strong>"⚔️ Bước 2: Vào Đánh Trùm"</strong> hoặc điều khiển Chiến Binh 3D đi săn Bug!
+          </p>
+          <div class="hero-quick-actions">
+            <button id="btn-practice-all" class="btn btn-primary" type="button" data-action="practice-all">
+              <span aria-hidden="true">🚀</span> Tuần Tra Tổng Hợp (Tất Cả Chương)
+            </button>
+            <button id="btn-k3-lab" class="btn btn-secondary" type="button" data-action="k3-lab">
+              <span aria-hidden="true">🧪</span> Phòng Thực Hành K3 (Phân Vùng, Biên, Bảng Quyết Định)
+            </button>
+            <button id="btn-mistake-raid" class="btn btn-danger-outline" type="button" data-action="mistake-raid">
+              <span aria-hidden="true">💀</span> Sổ Thù Vặt (Ôn Lại Câu Sai)
+              <span id="mistake-count" class="badge-pill badge-rose">0</span>
+            </button>
+          </div>
+        </div>
+
+        <!-- Daily Quest & Tactical Readiness Card -->
+        <aside id="daily-quest-box" class="daily-quest-card" aria-label="Nhiệm vụ hàng ngày">
+          <div class="dq-header">
+            <span class="dq-tag">NHIỆM VỤ HÔM NAY</span>
+            <span id="daily-quest-reward" class="dq-reward">+150 XP</span>
+          </div>
+          <h3 id="daily-quest-title" class="dq-title">Tiêu diệt 10 Quái Vật Bug trong Thế Giới 3D hoặc Đấu Trường</h3>
+          <p id="daily-quest-desc" class="dq-desc">Hoàn thành mục tiêu mỗi ngày để duy trì chuỗi ngày học và thăng cấp nhanh.</p>
+          <div class="dq-progress-wrap">
+            <div class="dq-progress-meta">
+              <span id="daily-quest-status">Tiến độ nhiệm vụ</span>
+              <span id="daily-quest-progress" class="mono-text">0 / 10</span>
+            </div>
+            <div class="progress-track">
+              <div id="daily-quest-bar" class="progress-fill fill-amber" style="width: 0%;"></div>
+            </div>
+          </div>
+        </aside>
+      </div>
+
+      <!-- Chapter Filter & Syllabus Weight Overview Bar -->
+      <div class="section-toolbar">
+        <div class="toolbar-left">
+          <h3 class="section-subtitle">LỘ TRÌNH 6 CHƯƠNG: HỌC LÝ THUYẾT → ĐÁNH TRÙM 3D</h3>
+          <p class="section-hint">Mỗi chương gồm Bước 1 (Học lý thuyết &amp; ví dụ mẫu có sẵn lời giải) và Bước 2 (Đột kích Đại Trùm 3D).</p>
+        </div>
+        <div id="campaign-filter-bar" class="filter-pill-group" role="group" aria-label="Lọc chương">
+          <button class="filter-pill active" type="button" data-filter="all">Tất cả (6 Chương / 40 Câu thi)</button>
+          <button class="filter-pill" type="button" data-filter="core">Nền tảng (Chương 1–3: 18 Câu)</button>
+          <button class="filter-pill" type="button" data-filter="advanced">Kỹ thuật &amp; Quản lý (Chương 4–6: 22 Câu)</button>
+        </div>
+      </div>
+
+      <!-- 6-Chapter Boss Grid (Populated dynamically by app.js, with semantic fallback) -->
+      <div id="chapter-grid" class="chapter-boss-grid" role="list" aria-label="Danh sách 6 chương và Boss">
+        <!-- JS injects 6 chapter cards here -->
+      </div>
+    </section>
+
+    <!-- ===================================================================
+         VIEW 2: ACTIVE BATTLE ARENA (#view-arena)
+         =================================================================== -->
+    <section id="view-arena" class="view-section hidden" aria-labelledby="arena-mode-title">
+      <!-- Arena Tactical Top Bar -->
+      <div class="arena-top-bar">
+        <button id="btn-arena-exit" class="btn btn-ghost btn-sm" type="button">
+          <span aria-hidden="true">←</span> Rút Lui Về Căn Cứ
+        </button>
+
+        <div class="arena-mission-info">
+          <span class="mission-tag">ĐẤU TRƯỜNG DIỆT TRÙM 3D</span>
+          <h2 id="arena-mode-title" class="arena-title">Chiến Dịch Chương 1: Cơ bản về Kiểm thử</h2>
+        </div>
+
+        <div class="arena-progress-cluster">
+          <div class="arena-progress-meta">
+            <span class="mono-label">TIẾN ĐỘ TRẬN ĐẤU</span>
+            <span id="arena-progress-text" class="mono-val">Câu 1 / 12</span>
+          </div>
+          <div class="progress-track arena-track">
+            <div id="arena-progress-bar" class="progress-fill fill-cyan" style="width: 7%;"></div>
+          </div>
+        </div>
+
+        <div class="arena-timer-box" title="Thời gian suy nghĩ câu hỏi">
+          <span class="timer-icon" aria-hidden="true">⏱️</span>
+          <span id="arena-timer" class="mono-timer">00:00</span>
+        </div>
+      </div>
+
+      <!-- Combatants HUD: Player vs Boss -->
+      <div class="combat-hud-grid">
+        <!-- Player Fighter Card -->
+        <div id="player-combat-card" class="combatant-card player-card">
+          <div class="combatant-header">
+            <div class="combatant-avatar player-avatar" aria-hidden="true">🛡️</div>
+            <div class="combatant-identity">
+              <div class="combatant-name-row">
+                <span class="combatant-role">CHIẾN BINH TESTER</span>
+                <span id="player-combo-badge" class="combo-badge">LIÊN KÍCH x1</span>
+              </div>
+              <h3 class="combatant-name">Chiến Binh Kiểm Thử 3D</h3>
+            </div>
+          </div>
+          <div class="hp-bar-container">
+            <div class="hp-bar-labels">
+              <span>MÁU CHIẾN BINH (HP)</span>
+              <span id="player-hp-text" class="mono-text">100 / 100</span>
+            </div>
+            <div class="hp-track">
+              <div id="player-hp-bar" class="hp-fill hp-emerald" style="width: 100%;"></div>
+            </div>
+          </div>
+          <div id="player-floating-dmg" class="combat-float-anchor" aria-hidden="true"></div>
+        </div>
+
+        <!-- VS Divider -->
+        <div class="combat-vs-badge" aria-hidden="true">
+          <span>ĐẤU</span>
+        </div>
+
+        <!-- Boss Fighter Card -->
+        <div id="boss-combat-card" class="combatant-card boss-card">
+          <div class="combatant-header">
+            <div id="boss-avatar" class="combatant-avatar boss-avatar" aria-hidden="true">👾</div>
+            <div class="combatant-identity">
+              <div class="combatant-name-row">
+                <span id="boss-title" class="combatant-role text-rose">Trùm Lỗi Nhận Thức &amp; Nguyên Lý</span>
+              </div>
+              <h3 id="boss-name" class="combatant-name">Đại Ma Vương NullPointer</h3>
+            </div>
+          </div>
+          <div class="hp-bar-container">
+            <div class="hp-bar-labels">
+              <span>MÁU TRÙM CHƯƠNG (HP)</span>
+              <span id="boss-hp-text" class="mono-text">100 / 100</span>
+            </div>
+            <div class="hp-track">
+              <div id="boss-hp-bar" class="hp-fill hp-rose" style="width: 100%;"></div>
+            </div>
+          </div>
+          <p id="boss-dialogue" class="boss-dialogue">"Ngươi nghĩ kiểm thử có thể chứng minh phần mềm không còn lỗi sao? Thật ngây thơ!"</p>
+          <div id="boss-floating-dmg" class="combat-float-anchor" aria-hidden="true"></div>
+        </div>
+      </div>
+
+      <!-- Tactical Power-ups Bar -->
+      <div class="powerups-bar" role="toolbar" aria-label="Công cụ trợ chiến">
+        <span class="powerups-label">KỸ NĂNG HỖ TRỢ:</span>
+        <button id="powerup-5050" class="powerup-btn" type="button" title="Loại bỏ 2 phương án sai">
+          <span class="pu-icon" aria-hidden="true">🔍</span>
+          <span class="pu-name">Loại 2 Đáp Án Sai</span>
+          <span class="pu-count" data-pu-count="5050">1</span>
+        </button>
+        <button id="powerup-freeze" class="powerup-btn" type="button" title="Đóng băng đồng hồ &amp; nhận thêm XP">
+          <span class="pu-icon" aria-hidden="true">❄️</span>
+          <span class="pu-name">Đóng Băng Giờ</span>
+          <span class="pu-count" data-pu-count="freeze">1</span>
+        </button>
+        <button id="powerup-peek" class="powerup-btn" type="button" title="Mở/Ẩn bài học lý thuyết của mục này (Miễn phí &amp; Không giới hạn)">
+          <span class="pu-icon" aria-hidden="true">📖</span>
+          <span class="pu-name">📖 Mở Bài Học Mục Này</span>
+          <span class="pu-count" data-pu-count="peek">∞</span>
+        </button>
+        <button id="powerup-shield" class="powerup-btn" type="button" title="Hồi phục +30 Máu Chiến Binh">
+          <span class="pu-icon" aria-hidden="true">💉</span>
+          <span class="pu-name">Hồi +30 Máu</span>
+          <span class="pu-count" data-pu-count="shield">1</span>
+        </button>
+      </div>
+
+      <!-- Question Tactical Terminal Card -->
+      <article id="arena-question-card" class="question-terminal-card">
+        <header class="q-meta-header">
+          <div class="q-badges-left">
+            <span id="q-chapter-badge" class="meta-badge badge-cyan">CHƯƠNG 1</span>
+            <span id="q-section-badge" class="meta-badge badge-slate">Mục 1.1</span>
+            <span id="q-klevel-badge" class="meta-badge badge-amber">K2</span>
+            <span id="q-difficulty-badge" class="meta-badge badge-outline">Chuẩn thi</span>
+          </div>
+          <div class="q-shortcut-hint">
+            <span>Phím tắt: <kbd>1</kbd>-<kbd>4</kbd> hoặc <kbd>A</kbd>-<kbd>D</kbd> chọn đáp án • <kbd>Enter</kbd> tiếp tục</span>
+          </div>
+        </header>
+
+        <!-- Syllabus Study Guide Box (Auto-populated for current question's section so user can study before answering!) -->
+        <aside id="q-peek-box" class="q-peek-drawer" aria-live="polite">
+          <!-- Populated automatically for every question with collapsible theory + memory hook -->
+        </aside>
+
+        <div class="q-scenario-body">
+          <p id="q-scenario-text" class="q-scenario-text">
+            Đang tải tình huống kiểm thử từ cơ sở dữ liệu ISTQB CTFL v4.0.1...
+          </p>
+        </div>
+
+        <!-- Answer Options List -->
+        <div id="q-options-list" class="q-options-grid" role="group" aria-label="Các phương án trả lời">
+          <!-- Buttons injected by app.js -->
+        </div>
+
+        <!-- Post-Answer Feedback & Syllabus Explanation Panel -->
+        <div id="q-feedback-panel" class="q-feedback-panel hidden" aria-live="polite">
+          <div class="feedback-header">
+            <h4 id="q-feedback-title" class="feedback-title">🔥 ĐÒN ĐÁNH CHÍ MẠNG! CHÍNH XÁC!</h4>
+          </div>
+          <div class="feedback-body">
+            <div class="explanation-block">
+              <span class="block-label">PHÂN TÍCH ĐÁP ÁN CHUẨN GIÁO TRÌNH v4.0.1:</span>
+              <p id="q-explanation-text" class="explanation-text"></p>
+            </div>
+            <div class="mnemonic-block">
+              <span class="mnemonic-icon" aria-hidden="true">💡</span>
+              <div class="mnemonic-content">
+                <span class="block-label text-amber">MẸO GHI NHỚ NHANH:</span>
+                <p id="q-mnemonic-text" class="mnemonic-text"></p>
+              </div>
+            </div>
+          </div>
+          <div class="feedback-footer">
+            <button id="btn-next-question" class="btn btn-primary btn-lg" type="button">
+              Câu Tiếp Theo <span aria-hidden="true">→</span> <kbd class="kbd-inline">Enter</kbd>
+            </button>
+          </div>
+        </div>
+      </article>
+    </section>
+
+    <!-- ===================================================================
+         VIEW 3: OFFICIAL ISTQB MOCK EXAM SIMULATOR (#view-exam)
+         =================================================================== -->
+    <section id="view-exam" class="view-section hidden" aria-labelledby="exam-heading">
+      <!-- Exam Intro / Start Screen -->
+      <div id="exam-intro-card" class="exam-intro-card">
+        <div class="exam-intro-header">
+          <span class="status-badge badge-cyan">CHẾ ĐỘ MÔ PHỎNG KỲ THI QUỐC TẾ</span>
+          <h2 id="exam-heading" class="exam-main-title">Thi Thử ISTQB CTFL v4.0.1 Chuẩn Quốc Tế</h2>
+          <p class="exam-intro-desc">
+            Đề thi được trích xuất ngẫu nhiên theo đúng ma trận phân bổ câu hỏi chính thức của ISTQB Foundation Level v4.0.1. Không hiển thị đáp án trong lúc làm bài; kết quả và giải thích chi tiết từng câu sẽ được công bố ngay khi nộp bài.
+          </p>
+        </div>
+
+        <div class="exam-specs-grid">
+          <div class="spec-stat-box">
+            <span class="spec-label">SỐ LƯỢNG CÂU HỎI</span>
+            <span class="spec-value mono-text">40 Câu</span>
+            <span class="spec-note">Trắc nghiệm 4 lựa chọn (1 đáp án đúng)</span>
+          </div>
+          <div class="spec-stat-box">
+            <span class="spec-label">THỜI GIAN LÀM BÀI</span>
+            <span class="spec-value mono-text">60:00 Phút</span>
+            <span class="spec-note">Tự động thu bài khi hết giờ</span>
+          </div>
+          <div class="spec-stat-box">
+            <span class="spec-label">ĐIỂM ĐẠT CHUẨN</span>
+            <span class="spec-value mono-text text-emerald">26 / 40 (65%)</span>
+            <span class="spec-note">Mỗi câu đúng +1 điểm, không trừ điểm câu sai</span>
+          </div>
+        </div>
+
+        <!-- Official ISTQB v4.0.1 Chapter Weight Table -->
+        <div class="exam-table-wrapper">
+          <h3 class="table-caption">Ma Trận Phân Bổ Câu Hỏi Chuẩn ISTQB CTFL v4.0.1</h3>
+          <table class="tactical-table">
+            <thead>
+              <tr>
+                <th>Chương</th>
+                <th>Nội dung Giáo trình v4.0.1</th>
+                <th>Mức độ nhận thức</th>
+                <th>Số câu trong đề</th>
+                <th>Tỷ trọng</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td class="mono-text text-cyan">Chương 1</td>
+                <td>Cơ bản về Kiểm thử (Fundamentals of Testing)</td>
+                <td><span class="badge-inline">K1, K2</span></td>
+                <td class="mono-text font-bold">8 câu</td>
+                <td class="mono-text">20%</td>
+              </tr>
+              <tr>
+                <td class="mono-text text-cyan">Chương 2</td>
+                <td>Kiểm thử trong Vòng đời Phát triển Phần mềm (SDLC)</td>
+                <td><span class="badge-inline">K1, K2</span></td>
+                <td class="mono-text font-bold">6 câu</td>
+                <td class="mono-text">15%</td>
+              </tr>
+              <tr>
+                <td class="mono-text text-cyan">Chương 3</td>
+                <td>Kiểm thử Tĩnh (Static Testing)</td>
+                <td><span class="badge-inline">K1, K2</span></td>
+                <td class="mono-text font-bold">4 câu</td>
+                <td class="mono-text">10%</td>
+              </tr>
+              <tr>
+                <td class="mono-text text-cyan">Chương 4</td>
+                <td>Phân tích và Thiết kế Kiểm thử (Test Analysis &amp; Design)</td>
+                <td><span class="badge-inline badge-amber">K2, K3</span></td>
+                <td class="mono-text font-bold text-amber">11 câu</td>
+                <td class="mono-text text-amber">27.5%</td>
+              </tr>
+              <tr>
+                <td class="mono-text text-cyan">Chương 5</td>
+                <td>Quản lý các Hoạt động Kiểm thử (Managing the Test Activities)</td>
+                <td><span class="badge-inline badge-amber">K1, K2, K3</span></td>
+                <td class="mono-text font-bold">9 câu</td>
+                <td class="mono-text">22.5%</td>
+              </tr>
+              <tr>
+                <td class="mono-text text-cyan">Chương 6</td>
+                <td>Công cụ Kiểm thử (Test Tools)</td>
+                <td><span class="badge-inline">K1, K2</span></td>
+                <td class="mono-text font-bold">2 câu</td>
+                <td class="mono-text">5%</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+
+        <div class="exam-intro-actions">
+          <button id="btn-start-exam" class="btn btn-primary btn-lg" type="button">
+            <span aria-hidden="true">🎯</span> Bắt Đầu Kỳ Thi Thử (40 Câu / 60 Phút)
+          </button>
+        </div>
+
+        <div id="exam-history-box" class="exam-history-section">
+          <!-- Optional exam history populated by app.js -->
+        </div>
+      </div>
+
+      <!-- Active Exam Workspace (Hidden until started) -->
+      <div id="exam-workspace" class="exam-workspace hidden">
+        <div class="exam-top-bar">
+          <div class="exam-status-left">
+            <span class="badge-pill badge-cyan">ĐANG LÀM BÀI THI THỬ</span>
+            <span id="exam-q-counter" class="mono-val">Câu 1 / 40</span>
+          </div>
+
+          <div class="exam-timer-cluster">
+            <span aria-hidden="true">⏳</span>
+            <span id="exam-timer" class="mono-timer">60:00</span>
+          </div>
+
+          <div class="exam-actions-right">
+            <button id="btn-exam-flag" class="btn btn-secondary btn-sm" type="button">
+              <span aria-hidden="true">🚩</span> Đánh dấu xem lại
+            </button>
+            <button id="btn-exam-submit" class="btn btn-primary btn-sm" type="button">
+              <span aria-hidden="true">✓</span> Nộp Bài Thi
+            </button>
+          </div>
+        </div>
+
+        <div class="exam-split-layout">
+          <!-- Left: Question & Options -->
+          <div class="exam-main-pane">
+            <article id="exam-q-card" class="question-terminal-card exam-card">
+              <!-- Question text or badges rendered here by app.js -->
+            </article>
+            <div id="exam-options-list" class="q-options-grid exam-options-grid" role="group" aria-label="Lựa chọn đáp án bài thi">
+              <!-- Options rendered here by app.js -->
+            </div>
+
+            <div class="exam-bottom-nav">
+              <button id="btn-exam-prev" class="btn btn-secondary" type="button">
+                <span aria-hidden="true">←</span> Câu Trước
+              </button>
+              <button id="btn-exam-next" class="btn btn-primary" type="button">
+                Câu Tiếp Theo <span aria-hidden="true">→</span>
+              </button>
+            </div>
+          </div>
+
+          <!-- Right: 40-Question Navigator Grid -->
+          <aside class="exam-sidebar-nav" aria-label="Bảng điều hướng 40 câu hỏi">
+            <h3 class="sidebar-title">BẢNG ĐIỀU HƯỚNG (40 CÂU)</h3>
+            <div class="nav-legend">
+              <span class="legend-item"><i class="dot dot-current"></i> Đang xem</span>
+              <span class="legend-item"><i class="dot dot-answered"></i> Đã chọn</span>
+              <span class="legend-item"><i class="dot dot-flagged"></i> Cắm cờ</span>
+            </div>
+            <div id="exam-nav-grid" class="exam-nav-grid">
+              <!-- 40 question pills injected by app.js -->
+            </div>
+          </aside>
+        </div>
+      </div>
+
+      <!-- Exam Results Panel (Hidden until submitted) -->
+      <div id="exam-result-panel" class="exam-result-panel hidden">
+        <div class="exam-result-header">
+          <div class="score-circle-card">
+            <span class="score-label">ĐIỂM SỐ CỦA BẠN</span>
+            <div id="exam-score-big" class="score-big mono-text">0 / 40</div>
+            <span id="exam-pass-badge" class="badge-pill badge-emerald">ĐẠT CHUẨN ISTQB (PASS)</span>
+            <p class="score-meta">Thời gian hoàn thành: <strong id="exam-time-taken" class="mono-text">00:00</strong></p>
+          </div>
+
+          <div class="exam-breakdown-card">
+            <h3 class="card-section-title">PHÂN TÍCH KẾT QUẢ THEO 6 CHƯƠNG</h3>
+            <div id="exam-chapter-breakdown" class="chapter-breakdown-list">
+              <!-- Chapter bars injected by app.js -->
+            </div>
+            <div class="exam-result-actions">
+              <button id="btn-exam-retry" class="btn btn-primary" type="button">
+                <span aria-hidden="true">🔄</span> Thi Đề Mới (40 Câu Khác)
+              </button>
+            </div>
+          </div>
+        </div>
+
+        <div class="exam-review-container">
+          <h3 class="card-section-title">CHI TIẾT ĐÁP ÁN &amp; GIẢI THÍCH TOÀN BỘ 40 CÂU HỎI</h3>
+          <div id="exam-review-list" class="exam-review-list">
+            <!-- Detailed review cards injected by app.js -->
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ===================================================================
+         VIEW 4: 60s BUG SMASHER BLITZ (#view-blitz)
+         =================================================================== -->
+    <section id="view-blitz" class="view-section hidden" aria-labelledby="blitz-heading">
+      <!-- Blitz Intro -->
+      <div id="blitz-intro" class="blitz-intro-card">
+        <div class="blitz-badge-wrap">
+          <span class="status-badge badge-amber">LUYỆN PHẢN XẠ SIÊU TỐC</span>
+        </div>
+        <h2 id="blitz-heading" class="exam-main-title">⚡ 60 Giây Đập Bug Tốc Độ</h2>
+        <p class="exam-intro-desc">
+          60 giây sinh tử! Trả lời nhanh và chính xác nhất có thể để nhân hệ số Liên Kích từ <strong>x1</strong> lên <strong>x5</strong>. Mỗi chuỗi 5 câu đúng liên tiếp sẽ thưởng nóng <strong>+2 giây</strong> vào đồng hồ đếm ngược!
+        </p>
+        <div class="blitz-rules-row">
+          <div class="rule-pill">⏱️ 60 Giây Cố Định</div>
+          <div class="rule-pill">🔥 Chuỗi 5 Câu Đúng = +2 Giây</div>
+          <div class="rule-pill">⚡ Nhân Điểm Tối Đa x5</div>
+        </div>
+        <button id="btn-start-blitz" class="btn btn-primary btn-lg" type="button">
+          <span aria-hidden="true">⚡</span> Bắt Đầu Đập Bug 60 Giây!
+        </button>
+      </div>
+
+      <!-- Blitz Active Workspace -->
+      <div id="blitz-workspace" class="blitz-workspace hidden">
+        <div class="blitz-hud-bar">
+          <div class="blitz-stat-box">
+            <span class="mono-label">THỜI GIAN CÒN LẠI</span>
+            <span id="blitz-timer" class="mono-timer text-amber">60s</span>
+          </div>
+          <div class="blitz-stat-box">
+            <span class="mono-label">ĐIỂM SỐ</span>
+            <span id="blitz-score" class="mono-timer text-cyan">0</span>
+          </div>
+          <div class="blitz-stat-box">
+            <span class="mono-label">HỆ SỐ NHÂN</span>
+            <span id="blitz-multiplier" class="combo-badge combo-lg">x1</span>
+          </div>
+        </div>
+
+        <div id="blitz-q-box" class="question-terminal-card blitz-card">
+          <!-- Blitz question & options injected by app.js -->
+        </div>
+      </div>
+
+      <!-- Blitz Results -->
+      <div id="blitz-result" class="blitz-result-card hidden">
+        <!-- Populated by app.js or structured for blitz summary -->
+      </div>
+    </section>
+
+    <!-- ===================================================================
+         VIEW 5: INTERACTIVE 3D FLIP FLASHCARDS & SRS (#view-flashcards)
+         =================================================================== -->
+    <section id="view-flashcards" class="view-section hidden" aria-labelledby="fc-heading">
+      <div class="section-toolbar">
+        <div class="toolbar-left">
+          <h2 id="fc-heading" class="section-subtitle">THẺ NHỚ 3D &amp; ÔN TẬP THUẬT NGỮ TRỌNG TÂM</h2>
+          <p class="section-hint">Nhấp vào thẻ hoặc nhấn phím <kbd>Space</kbd> / <kbd>F</kbd> để lật mặt sau xem định nghĩa chuẩn và mẹo ghi nhớ.</p>
+        </div>
+        <div class="fc-toolbar-controls">
+          <label for="fc-chapter-filter" class="sr-only">Lọc theo chương</label>
+          <select id="fc-chapter-filter" class="tactical-select" aria-label="Lọc thẻ nhớ theo chương">
+            <option value="all">Tất cả 6 Chương (48 Thẻ)</option>
+            <option value="review">Chưa thuộc (Cần ôn lại)</option>
+            <option value="1">Chương 1: Cơ bản về Kiểm thử</option>
+            <option value="2">Chương 2: Kiểm thử trong SDLC</option>
+            <option value="3">Chương 3: Kiểm thử Tĩnh</option>
+            <option value="4">Chương 4: Phân tích &amp; Thiết kế Kiểm thử</option>
+            <option value="5">Chương 5: Quản lý Hoạt động Kiểm thử</option>
+            <option value="6">Chương 6: Công cụ Kiểm thử</option>
+          </select>
+          <span id="fc-counter" class="mono-badge">Thẻ 1 / 48</span>
+        </div>
+      </div>
+
+      <!-- 3D Flip Card Stage -->
+      <div class="flashcard-stage">
+        <div id="fc-card" class="fc-card-3d" tabindex="0" role="button" aria-label="Thẻ nhớ thuật ngữ ISTQB - Nhấn để lật">
+          <div class="fc-card-inner">
+            <!-- Front Face -->
+            <div class="fc-face fc-face-front">
+              <div class="fc-face-top">
+                <span id="fc-front-meta" class="meta-badge badge-cyan">Chương 1 • Mục 1.1</span>
+                <span class="fc-flip-hint">Lật thẻ ↻</span>
+              </div>
+              <div class="fc-face-center">
+                <h3 id="fc-front-term" class="fc-term-title">7 Nguyên lý Kiểm thử (7 Testing Principles)</h3>
+              </div>
+              <div class="fc-face-bottom">
+                <span>THUẬT NGỮ &amp; KHÁI NIỆM TRỌNG TÂM ISTQB v4.0.1</span>
+              </div>
+            </div>
+
+            <!-- Back Face -->
+            <div class="fc-face fc-face-back">
+              <div class="fc-face-top">
+                <span class="meta-badge badge-emerald">ĐỊNH NGHĨA CHUẨN GIÁO TRÌNH</span>
+                <span class="fc-flip-hint">Lật lại ↻</span>
+              </div>
+              <div class="fc-face-center fc-back-scroll">
+                <p id="fc-back-def" class="fc-def-text"></p>
+                <div class="fc-hook-box">
+                  <span class="hook-label">💡 MẸO GHI NHỚ NHANH:</span>
+                  <p id="fc-back-hook" class="fc-hook-text"></p>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Flashcard Controls -->
+      <div class="fc-controls-bar">
+        <button id="btn-fc-prev" class="btn btn-secondary" type="button">
+          <span aria-hidden="true">←</span> Thẻ Trước
+        </button>
+        <button id="btn-fc-flip" class="btn btn-ghost" type="button">
+          <span aria-hidden="true">🔄</span> Lật Thẻ (<kbd>F</kbd>)
+        </button>
+        <button id="btn-fc-review" class="btn btn-warning-outline" type="button">
+          <span aria-hidden="true">📌</span> Cần Ôn Lại
+        </button>
+        <button id="btn-fc-know" class="btn btn-success" type="button">
+          <span aria-hidden="true">✓</span> Đã Thuộc Lòng (+XP)
+        </button>
+        <button id="btn-fc-next" class="btn btn-secondary" type="button">
+          Thẻ Tiếp <span aria-hidden="true">→</span>
+        </button>
+      </div>
+    </section>
+
+    <!-- ===================================================================
+         VIEW 6: SYLLABUS CODEX & MASTERY DASHBOARD (#view-codex)
+         =================================================================== -->
+    <section id="view-codex" class="view-section hidden" aria-labelledby="codex-heading">
+      <!-- Mastery Analytics & Achievements Row -->
+      <div class="codex-dashboard-grid">
+        <div class="codex-panel">
+          <h2 id="codex-heading" class="card-section-title">📊 ĐỘ THÔNG THẠO THEO 6 CHƯƠNG</h2>
+          <div id="mastery-chart" class="mastery-chart-box">
+            <!-- Mastery progress bars injected by app.js -->
+          </div>
+        </div>
+
+        <div class="codex-panel">
+          <h3 class="card-section-title">🏆 HUY HIỆU CHIẾN CÔNG KIỂM THỬ</h3>
+          <div id="achievements-grid" class="achievements-grid">
+            <!-- Achievements badges injected by app.js -->
+          </div>
+        </div>
+      </div>
+
+      <!-- Syllabus Cheat Sheet Explorer -->
+      <div class="codex-explorer-card">
+        <div class="codex-explorer-header">
+          <div>
+            <h3 class="card-section-title">📡 BÍ KÍP CỐT LÕI ISTQB CTFL v4.0.1 (TÓM TẮT TOÀN THƯ)</h3>
+            <p class="section-hint">Tóm tắt cô đọng toàn bộ công thức, bảng phân biệt và từ khóa bẫy thường gặp trong đề thi thật.</p>
+          </div>
+          <div class="codex-search-wrap">
+            <label for="codex-search" class="sr-only">Tìm kiếm kiến thức trong Giáo trình</label>
+            <input id="codex-search" class="tactical-input" type="search" placeholder="Tìm nhanh: Giá trị biên, K3, Duyệt tĩnh, Rủi ro, 7 nguyên lý..." />
+          </div>
+        </div>
+
+        <div id="codex-chapter-tabs" class="filter-pill-group codex-tabs" role="tablist" aria-label="Chọn chương xem Bí kíp">
+          <!-- Chapter tab buttons injected or controlled by app.js -->
+        </div>
+
+        <div id="codex-content" class="codex-content-grid">
+          <!-- Cheat sheet sections injected by app.js -->
+        </div>
+      </div>
+    </section>
+
+  </main>
+
+  <!-- =====================================================================
+       VICTORY / BOSS DEFEATED / SESSION SUMMARY MODAL (#modal-result)
+       ===================================================================== -->
+  <div id="modal-result" class="modal-backdrop hidden" role="dialog" aria-modal="true" aria-labelledby="result-title">
+    <div class="modal-card">
+      <div class="modal-glow-bar" aria-hidden="true"></div>
+      <div class="modal-header">
+        <span class="status-badge badge-cyan">BÁO CÁO TRẬN ĐẤU</span>
+        <h2 id="result-title" class="modal-title">CHIẾN THẮNG! ĐẠI TRÙM ĐÃ BỊ TIÊU DIỆT</h2>
+        <p id="result-subtitle" class="modal-subtitle">Bạn đã làm chủ hoàn toàn kiến thức chương này.</p>
+      </div>
+
+      <div id="result-stats" class="modal-stats-grid">
+        <!-- Populated by app.js -->
+      </div>
+
+      <div class="modal-actions">
+        <button id="btn-result-retry" class="btn btn-secondary" type="button">
+          <span aria-hidden="true">🔄</span> Đánh Lại Trận Này
+        </button>
+        <button id="btn-result-continue" class="btn btn-primary" type="button">
+          <span aria-hidden="true">✓</span> Tiếp Tục Chiến Dịch
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Scripts (Strict Loading Order) -->
+  <script src="js/data-chap123.js"></script>
+  <script src="js/data-chap456.js"></script>
+  <script src="js/three.min.js"></script>
+  <script src="js/world3d.js"></script>
+  <script src="js/sound-fx.js"></script>
+  <script src="js/app.js"></script>
+</body>
+</html>
