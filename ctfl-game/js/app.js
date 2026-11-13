@@ -706,6 +706,10 @@
         document.querySelectorAll('[data-action="back-to-campaign"]').forEach((btn) => {
           btn.classList.toggle('hidden', viewName === 'campaign');
         });
+        const winBar = document.querySelector('.workspace-window-bar');
+        if (winBar) {
+          winBar.classList.toggle('hidden', viewName === 'arena');
+        }
       }
 
       if (viewName === 'study') {
@@ -1910,7 +1914,9 @@
           window.CTFLBattleStage.setCombatants({
             chapterId: currentChapterId,
             bossName: boss.name,
+            bossTitle: boss.title,
             bossIcon: boss.icon,
+            playerHp: 100,
             heroHp: 100,
             bossHp: 100,
             combo: 0,
@@ -2079,6 +2085,7 @@
         const canUlt = furyVal >= 100 || !a.ultUsed;
         btnUlt.disabled = !canUlt;
         btnUlt.classList.toggle('btn-primary', furyVal >= 100);
+        btnUlt.classList.toggle('btn-secondary', furyVal < 100);
       }
 
       const btnShield = safeEl('btn-stage-shield');
@@ -2125,10 +2132,11 @@
       if (!this.arena || this.arena.answered) return;
       const a = this.arena;
       const q = a.questions[a.index];
+      const act = (action && typeof action === 'object') ? action.type : action;
 
-      if (action === 'slash') {
+      if (act === 'slash') {
         if (window.CTFLSound) window.CTFLSound.click();
-        if (window.CTFLBattleStage && typeof window.CTFLBattleStage.heroAttack === 'function') {
+        if (window.CTFLBattleStage && typeof window.CTFLBattleStage.heroAttack === 'function' && typeof action !== 'object') {
           window.CTFLBattleStage.heroAttack(false);
         }
         a.bossHp = Math.max(0, a.bossHp - 2);
@@ -2136,9 +2144,20 @@
         const elBossAvatar = safeEl('boss-avatar');
         if (elBossAvatar) this._spawnFloatingDamage(elBossAvatar, '-2 HP CHÉM KIẾM!', '');
         this._updateArenaCombatHUD();
-      } else if (action === 'shoot' || action === 'weakpoint') {
+      } else if (act === 'weakpoint_hit' || act === 'weakpoint') {
+        if (window.CTFLSound) window.CTFLSound.criticalHit();
+        if (window.CTFLBattleStage && typeof window.CTFLBattleStage.heroAttack === 'function' && typeof action !== 'object') {
+          window.CTFLBattleStage.heroAttack(true);
+        }
+        a.bossHp = Math.max(0, a.bossHp - 3);
+        a.fury = Math.min(100, (a.fury || 0) + 20);
+        this.addXP(5);
+        const elBossAvatar = safeEl('boss-avatar');
+        if (elBossAvatar) this._spawnFloatingDamage(elBossAvatar, '-3 HP ĐIỂM YẾU!', 'dmg-crit');
+        this._updateArenaCombatHUD();
+      } else if (act === 'shoot') {
         if (window.CTFLSound) window.CTFLSound.select();
-        if (window.CTFLBattleStage && typeof window.CTFLBattleStage.heroShoot === 'function') {
+        if (window.CTFLBattleStage && typeof window.CTFLBattleStage.heroShoot === 'function' && typeof action !== 'object') {
           window.CTFLBattleStage.heroShoot();
         }
         a.bossHp = Math.max(0, a.bossHp - 2);
@@ -2146,12 +2165,15 @@
         const elBossAvatar = safeEl('boss-avatar');
         if (elBossAvatar) this._spawnFloatingDamage(elBossAvatar, '-2 HP LASER!', '');
         this._updateArenaCombatHUD();
-      } else if (action === 'shield') {
+      } else if (act === 'shield') {
         if (window.CTFLSound) window.CTFLSound.powerup();
+        if (window.CTFLBattleStage && typeof window.CTFLBattleStage.heroShieldBlock === 'function' && typeof action !== 'object') {
+          window.CTFLBattleStage.heroShieldBlock();
+        }
         a.shieldGuardActive = true;
         this._updateArenaCombatHUD();
         this._showToast('[KHIÊN] Khiên Năng Lượng đã bật! Giảm 75% sát thương nếu trả lời sai câu này.');
-      } else if (action === 'ultimate') {
+      } else if (act === 'ultimate' || act === 'ult') {
         if ((a.fury || 0) < 100 && a.ultUsed) {
           this._showToast('Cần tích đủ 100% Nộ để tung thêm Tuyệt Kỹ!');
           return;

@@ -353,35 +353,7 @@
   }
 
   function buildCanvasButtons() {
-    var y = state.height - 44;
-    var h = 32;
-    var gap = 10;
-    var specs = [
-      { id: 'slash', label: 'Chém Kiếm [1]', w: 146, bg: 'rgba(14, 165, 233, 0.24)', border: '#38bdf8' },
-      { id: 'shoot', label: 'Bắn Laser [2]', w: 146, bg: 'rgba(16, 185, 129, 0.22)', border: '#34d399' },
-      { id: 'shield', label: 'Bật Khiên [3]', w: 146, bg: 'rgba(99, 102, 241, 0.24)', border: '#818cf8' },
-      { id: 'ult', label: 'Tuyệt Kỹ [R]', w: 158, bg: 'rgba(245, 158, 11, 0.25)', border: '#fbbf24' }
-    ];
-    var totalW = 0;
-    for (var i = 0; i < specs.length; i++) totalW += specs[i].w;
-    totalW += gap * (specs.length - 1);
-    var startX = (state.width - totalW) * 0.5;
     state.buttons = [];
-    var cx = startX;
-    for (var j = 0; j < specs.length; j++) {
-      var s = specs[j];
-      state.buttons.push({
-        id: s.id,
-        label: s.label,
-        x: cx,
-        y: y,
-        w: s.w,
-        h: h,
-        bg: s.bg,
-        border: s.border
-      });
-      cx += s.w + gap;
-    }
   }
 
   function resizeCanvas() {
@@ -389,15 +361,12 @@
     var rect = typeof state.canvas.getBoundingClientRect === 'function'
       ? state.canvas.getBoundingClientRect()
       : null;
-    var cssW = rect && rect.width > 120 ? rect.width : 920;
-    var cssH = rect && rect.height > 120 ? rect.height : 380;
+    var cssW = rect && rect.width > 200 ? Math.round(rect.width) : 960;
+    var cssH = rect && rect.height > 120 ? Math.round(rect.height) : 220;
     var dpr = clamp(global.devicePixelRatio || 1, 1, 2);
     state.dpr = dpr;
-    state.width = 920;
-    state.height = Math.round(920 * (cssH / cssW));
-    if (state.height < 320 || state.height > 480) {
-      state.height = 380;
-    }
+    state.width = cssW;
+    state.height = cssH;
     if (state.canvas.width !== Math.round(state.width * dpr)) {
       state.canvas.width = Math.round(state.width * dpr);
     }
@@ -421,8 +390,8 @@
 
   function getBossAnchor() {
     var baseX = state.width * 0.74;
-    var baseY = state.height * 0.53;
-    var bob = Math.sin(state.elapsed * 2.1) * 7;
+    var baseY = state.height * 0.60;
+    var bob = Math.sin(state.elapsed * 2.1) * 6;
     var offsetX = 0;
     var offsetY = 0;
     if (state.bossAnim.type === 'hit') {
@@ -437,8 +406,8 @@
   }
 
   function getHeroAnchor() {
-    var baseX = state.width * 0.23;
-    var baseY = state.height * 0.56;
+    var baseX = state.width * 0.24;
+    var baseY = state.height * 0.64;
     var bob = Math.sin(state.elapsed * 3.4) * 4;
     var offsetX = 0;
     var offsetY = 0;
@@ -455,8 +424,8 @@
       offsetX = -Math.sin(hp * Math.PI) * 22;
     } else if (state.heroAnim.type === 'ultimate') {
       var up = state.heroAnim.timer / Math.max(0.01, state.heroAnim.duration);
-      offsetY = -Math.sin(up * Math.PI) * 90;
-      offsetX = Math.sin(up * Math.PI) * 45;
+      offsetY = -Math.sin(up * Math.PI) * 70;
+      offsetX = Math.sin(up * Math.PI) * 40;
     }
     return { x: baseX + offsetX, y: baseY + bob + offsetY };
   }
@@ -572,12 +541,6 @@
     var key = evt && evt.key ? evt.key.toLowerCase() : '';
     if (key === 'r') {
       handleCanvasAction('ult');
-    } else if (key === '1') {
-      handleCanvasAction('slash');
-    } else if (key === '2') {
-      handleCanvasAction('shoot');
-    } else if (key === '3') {
-      handleCanvasAction('shield');
     }
   }
 
@@ -1274,92 +1237,42 @@
   }
 
   function drawOverheadHUD(ctx, heroPos, bossPos, theme) {
-    // 1. Hero Overhead Bars (HP + Fury + Shield badge)
-    var hx = clamp(heroPos.x - 80, 16, state.width * 0.44);
-    var hy = 16;
+    // Compact Fury & Shield status pill above Hero (HP bars are shown in the combat HUD cards)
+    var hx = clamp(heroPos.x - 65, 14, state.width * 0.44);
+    var hy = 12;
     ctx.save();
-    ctx.fillStyle = 'rgba(15, 23, 42, 0.85)';
-    safeRoundRect(ctx, hx, hy, 210, 62, 10);
+    ctx.fillStyle = 'rgba(15, 23, 42, 0.82)';
+    safeRoundRect(ctx, hx, hy, 145, 26, 6);
     ctx.fill();
-    ctx.strokeStyle = 'rgba(56, 189, 248, 0.5)';
-    ctx.lineWidth = 1.5;
+    ctx.strokeStyle = state.fury >= 100 ? '#fde047' : 'rgba(56, 189, 248, 0.4)';
+    ctx.lineWidth = 1;
     ctx.stroke();
 
-    ctx.fillStyle = '#e2e8f0';
-    ctx.font = 'bold 12px sans-serif';
-    ctx.textAlign = 'left';
-    ctx.fillText('Chiến Binh QA', hx + 10, hy + 17);
-
-    if (state.combo > 1) {
-      ctx.fillStyle = '#fde047';
-      ctx.textAlign = 'right';
-      ctx.fillText('COMBO x' + state.combo, hx + 200, hy + 17);
-    }
-
-    // Hero HP Bar
-    var hpPct = clamp(state.displayPlayerHp / Math.max(1, state.maxPlayerHp), 0, 1);
-    ctx.fillStyle = '#1e293b';
-    safeRoundRect(ctx, hx + 10, hy + 24, 190, 10, 4);
-    ctx.fill();
-    ctx.fillStyle = hpPct > 0.35 ? '#10b981' : '#ef4444';
-    safeRoundRect(ctx, hx + 10, hy + 24, 190 * hpPct, 10, 4);
-    ctx.fill();
-
-    // Hero Fury Bar (0-100%)
     var furyPct = clamp(state.displayFury / 100, 0, 1);
     ctx.fillStyle = '#1e293b';
-    safeRoundRect(ctx, hx + 10, hy + 40, 190, 9, 4);
+    safeRoundRect(ctx, hx + 8, hy + 15, 129, 5, 2.5);
     ctx.fill();
     ctx.fillStyle = state.fury >= 100 ? '#fde047' : '#f59e0b';
-    safeRoundRect(ctx, hx + 10, hy + 40, 190 * furyPct, 9, 4);
+    safeRoundRect(ctx, hx + 8, hy + 15, 129 * furyPct, 5, 2.5);
     ctx.fill();
 
-    ctx.fillStyle = '#cbd5e1';
-    ctx.font = 'bold 9.5px monospace';
+    ctx.fillStyle = state.fury >= 100 ? '#fde047' : '#cbd5e1';
+    ctx.font = 'bold 10px monospace';
     ctx.textAlign = 'left';
-    ctx.fillText('NỘ: ' + Math.round(state.fury) + '%', hx + 12, hy + 58);
+    ctx.fillText('NỘ: ' + Math.round(state.fury) + '%', hx + 8, hy + 11);
     if (state.shieldActive) {
       ctx.fillStyle = '#34d399';
       ctx.textAlign = 'right';
-      ctx.fillText('KHIÊN (' + state.shieldTimer.toFixed(1) + 's)', hx + 200, hy + 58);
+      ctx.fillText('KHIÊN ' + state.shieldTimer.toFixed(1) + 's', hx + 137, hy + 11);
     }
-    ctx.restore();
-
-    // 2. Boss Overhead Bars
-    var bx = clamp(bossPos.x - 115, state.width * 0.52, state.width - 236);
-    var by = 16;
-    ctx.save();
-    ctx.fillStyle = 'rgba(15, 23, 42, 0.85)';
-    safeRoundRect(ctx, bx, by, 220, 56, 10);
-    ctx.fill();
-    ctx.strokeStyle = theme.primary;
-    ctx.lineWidth = 1.5;
-    ctx.stroke();
-
-    ctx.fillStyle = '#f8fafc';
-    ctx.font = 'bold 12px sans-serif';
-    ctx.textAlign = 'left';
-    ctx.fillText(state.bossName, bx + 10, by + 18);
-
-    ctx.fillStyle = theme.glow;
-    ctx.font = '10.5px sans-serif';
-    ctx.fillText(state.bossTitle, bx + 10, by + 32);
-
-    var bossPct = clamp(state.displayBossHp / Math.max(1, state.maxBossHp), 0, 1);
-    ctx.fillStyle = '#1e293b';
-    safeRoundRect(ctx, bx + 10, by + 38, 200, 11, 4);
-    ctx.fill();
-    ctx.fillStyle = theme.primary;
-    safeRoundRect(ctx, bx + 10, by + 38, 200 * bossPct, 11, 4);
-    ctx.fill();
     ctx.restore();
 
     // Speech Bubbles
     if (state.heroSpeechTimer > 0 && state.heroSpeech) {
-      drawSpeechBubble(ctx, heroPos.x, heroPos.y - 102, state.heroSpeech, '#22d3ee');
+      drawSpeechBubble(ctx, heroPos.x, heroPos.y - 76, state.heroSpeech, '#22d3ee');
     }
     if (state.bossSpeechTimer > 0 && state.bossSpeech && !state.defeatAnim.active) {
-      drawSpeechBubble(ctx, bossPos.x, bossPos.y - 108, state.bossSpeech, theme.primary);
+      drawSpeechBubble(ctx, bossPos.x, bossPos.y - 82, state.bossSpeech, theme.primary);
     }
   }
 
@@ -1648,7 +1561,8 @@
       state.bossTitle = cfg.bossTitle || theme.defaultTitle;
       state.maxPlayerHp = cfg.maxPlayerHp || 100;
       state.maxBossHp = cfg.maxBossHp || 100;
-      state.playerHp = typeof cfg.playerHp === 'number' ? cfg.playerHp : state.maxPlayerHp;
+      var heroIn = typeof cfg.playerHp === 'number' ? cfg.playerHp : (typeof cfg.heroHp === 'number' ? cfg.heroHp : state.maxPlayerHp);
+      state.playerHp = heroIn;
       state.bossHp = typeof cfg.bossHp === 'number' ? cfg.bossHp : state.maxBossHp;
       state.displayPlayerHp = state.playerHp;
       state.displayBossHp = state.bossHp;
@@ -1666,7 +1580,8 @@
       var d = next || {};
       if (typeof d.maxPlayerHp === 'number') state.maxPlayerHp = d.maxPlayerHp;
       if (typeof d.maxBossHp === 'number') state.maxBossHp = d.maxBossHp;
-      if (typeof d.playerHp === 'number') state.playerHp = clamp(d.playerHp, 0, state.maxPlayerHp);
+      var heroNext = typeof d.playerHp === 'number' ? d.playerHp : d.heroHp;
+      if (typeof heroNext === 'number') state.playerHp = clamp(heroNext, 0, state.maxPlayerHp);
       if (typeof d.bossHp === 'number') state.bossHp = clamp(d.bossHp, 0, state.maxBossHp);
       if (typeof d.combo === 'number') state.combo = Math.max(1, d.combo);
       if (typeof d.fury === 'number') {
