@@ -625,7 +625,6 @@ input:focus-visible,
   margin-bottom: 0.85rem;
   background: rgba(17, 24, 39, 0.88);
   border: 1px solid var(--border-subtle);
-  border-left: 3px solid var(--cyan);
   border-radius: var(--radius-sm);
   backdrop-filter: blur(8px);
 }
@@ -825,16 +824,6 @@ input:focus-visible,
   overflow: hidden;
 }
 
-.hero-main-card::before {
-  content: "";
-  position: absolute;
-  top: 0;
-  left: 0;
-  width: 100%;
-  height: 3px;
-  background: linear-gradient(90deg, var(--cyan), var(--emerald));
-}
-
 .hero-eyebrow {
   display: inline-flex;
   align-items: center;
@@ -891,7 +880,6 @@ input:focus-visible,
   display: flex;
   flex-direction: column;
   justify-content: space-between;
-  border-color: var(--border-amber);
 }
 
 .dq-header {
@@ -1201,11 +1189,11 @@ input:focus-visible,
 }
 
 .player-card {
-  border-left: 3px solid var(--emerald);
+  border-color: var(--border-subtle);
 }
 
 .boss-card {
-  border-right: 3px solid var(--rose);
+  border-color: var(--border-subtle);
 }
 
 .combatant-header {
@@ -2134,12 +2122,12 @@ input:focus-visible,
 }
 
 .fc-face-front {
-  border-top: 3px solid var(--cyan);
+  border-color: var(--border-strong);
 }
 
 .fc-face-back {
   transform: rotateY(180deg);
-  border-top: 3px solid var(--emerald);
+  border-color: var(--border-strong);
 }
 
 .fc-face-top {
@@ -2319,10 +2307,10 @@ input:focus-visible,
   width: 100%;
   max-width: 540px;
   background: var(--bg-slate);
-  border: 1px solid var(--border-cyan);
+  border: 1px solid var(--border-strong);
   border-radius: var(--radius-lg);
   padding: 2rem;
-  box-shadow: var(--shadow-card), var(--shadow-glow-cyan);
+  box-shadow: var(--shadow-card);
   text-align: center;
   position: relative;
   overflow: hidden;
@@ -2330,12 +2318,7 @@ input:focus-visible,
 }
 
 .modal-glow-bar {
-  position: absolute;
-  top: 0;
-  left: 0;
-  right: 0;
-  height: 4px;
-  background: linear-gradient(90deg, var(--cyan), var(--emerald), var(--amber));
+  display: none;
 }
 
 .modal-title {
@@ -2438,12 +2421,7 @@ input:focus-visible,
 
 .dq-progress-wrap {
   width: 100%;
-  height: 8px;
-  background: var(--bg-obsidian);
-  border-radius: 999px;
-  overflow: hidden;
-  border: 1px solid var(--border-subtle);
-  margin: 0.5rem 0;
+  margin-top: auto;
 }
 
 .dq-progress-bar {
@@ -2711,11 +2689,11 @@ input:focus-visible,
 .warn-fill { background: var(--amber); }
 
 .review-item.review-correct {
-  border-left: 3px solid var(--emerald);
+  border-color: var(--border-emerald);
 }
 
 .review-item.review-wrong {
-  border-left: 3px solid var(--rose);
+  border-color: var(--border-rose);
 }
 
 .review-header {
@@ -3083,8 +3061,8 @@ body.arena-3d-battle #view-arena .combat-hud-grid {
   margin-top: 0.65rem;
   padding: 0.85rem;
   border-radius: var(--radius-xs);
-  background: rgba(16, 185, 129, 0.1);
-  border-left: 3px solid var(--emerald-bright);
+  background: rgba(16, 185, 129, 0.08);
+  border: 1px solid var(--border-emerald);
 }
 
 
@@ -3193,7 +3171,7 @@ body.arena-3d-battle #view-arena .combat-hud-grid {
   padding: 0.85rem;
   border-radius: var(--radius-xs);
   background: var(--cyan-soft);
-  border-left: 3px solid var(--cyan-bright);
+  border: 1px solid var(--border-cyan);
   font-family: var(--font-mono);
   font-size: 0.86rem;
   line-height: 1.55;
@@ -3287,7 +3265,7 @@ body.arena-3d-battle #view-arena .combat-hud-grid {
   padding: 0.9rem 1rem;
   border-radius: var(--radius-sm);
   background: var(--emerald-soft);
-  border-left: 3px solid var(--emerald-bright);
+  border: 1px solid var(--border-emerald);
 }
 
 /* Interactive Mini Guardian Battle inside Study Section */
@@ -3456,7 +3434,7 @@ body.arena-3d-battle #view-arena .combat-hud-grid {
   padding: 0.75rem 0.95rem;
   border-radius: var(--radius-sm);
   background: var(--bg-slate-elevated);
-  border-left: 3px solid var(--cyan-bright);
+  border: 1px solid var(--border-subtle);
   font-size: 0.86rem;
   color: var(--text-secondary);
 }

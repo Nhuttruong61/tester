@@ -1470,7 +1470,7 @@
           ` : '';
 
           const exampleHtml = matchQ ? `
-            <details style="margin-top:0.75rem; padding:0.75rem 1rem; background:rgba(6,182,212,0.07); border-left:3px solid var(--cyan-bright); border-radius:8px;">
+            <details style="margin-top:0.75rem; padding:0.75rem 1rem; background:rgba(6,182,212,0.06); border:1px solid var(--border-subtle); border-radius:8px;">
               <summary style="cursor:pointer; font-size:0.82rem; font-weight:700; color:var(--cyan-bright); text-transform:uppercase;">
                 XEM VÍ DỤ BÀI TẬP MẪU &amp; LỜI GIẢI (${escapeHtml(matchQ.kLevel)})
               </summary>
