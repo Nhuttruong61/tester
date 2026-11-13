@@ -20,16 +20,16 @@
   <!-- 3D Action Control Bar & Interactive Guide HUD -->
   <div id="world3d-hud" class="world3d-hud" role="region" aria-label="Điều khiển nhân vật 3D">
     <div class="world3d-guide">
-      <span><strong>🕹️ Điều khiển 3D:</strong> <kbd>WASD</kbd>/<kbd>Mũi tên</kbd> Di chuyển</span>
+      <span><strong>ĐIỀU KHIỂN 3D:</strong> <kbd>WASD</kbd>/<kbd>Mũi tên</kbd> Di chuyển</span>
       <span>• <kbd>Click</kbd>/<kbd>F</kbd> Bắn Laser diệt Bug</span>
       <span>• <kbd>Space</kbd> Lướt nhanh</span>
       <span>• <kbd>E</kbd>/Click Trùm để Khiêu chiến</span>
     </div>
     <div class="world3d-actions">
-      <button id="btn-3d-shoot" class="btn btn-sm btn-secondary" type="button">🔫 Bắn Laser [F]</button>
-      <button id="btn-3d-dash" class="btn btn-sm btn-secondary" type="button">💨 Lướt [Space]</button>
-      <button id="btn-3d-interact" class="btn btn-sm btn-secondary" type="button">⚔️ Khiêu Chiến [E]</button>
-      <button id="btn-toggle-ui-panel" class="btn btn-sm btn-primary" type="button">🕹️ Đi Dạo &amp; Bắn Bug 3D Toàn Màn Hình</button>
+      <button id="btn-3d-shoot" class="btn btn-sm btn-secondary" type="button">Bắn Laser [F]</button>
+      <button id="btn-3d-dash" class="btn btn-sm btn-secondary" type="button">Lướt [Space]</button>
+      <button id="btn-3d-interact" class="btn btn-sm btn-secondary" type="button">Khiêu Chiến [E]</button>
+      <button id="btn-toggle-ui-panel" class="btn btn-sm btn-primary" type="button">Đi Dạo &amp; Bắn Bug 3D Toàn Màn Hình</button>
     </div>
   </div>
 
@@ -62,7 +62,7 @@
           </div>
           <div class="profile-details">
             <div class="profile-top-row">
-              <span id="hud-rank" class="rank-badge">🪲 Tân Binh Diệt Bug</span>
+              <span id="hud-rank" class="rank-badge">Tân Binh Diệt Bug</span>
               <span id="hud-xp-text" class="xp-text">0 / 200 XP</span>
             </div>
             <div class="xp-bar-track" role="progressbar" aria-label="Tiến độ kinh nghiệm XP" aria-valuemin="0" aria-valuemax="100" aria-valuenow="0">
@@ -75,21 +75,21 @@
       <!-- Tactical Telemetry Counters -->
       <div class="hud-telemetry" aria-label="Chỉ số chiến đấu">
         <div class="telemetry-pill streak-pill" title="Chuỗi ngày học liên tiếp">
-          <span class="telemetry-icon" aria-hidden="true">🔥</span>
+          <span class="telemetry-icon" aria-hidden="true">DAY</span>
           <div class="telemetry-data">
             <span class="telemetry-label">CHUỖI NGÀY</span>
             <span id="hud-streak" class="telemetry-val">1</span>
           </div>
         </div>
         <div class="telemetry-pill bugs-pill" title="Tổng số Bug đã tiêu diệt">
-          <span class="telemetry-icon" aria-hidden="true">🐞</span>
+          <span class="telemetry-icon" aria-hidden="true">HIT</span>
           <div class="telemetry-data">
             <span class="telemetry-label">BUG ĐÃ DIỆT</span>
             <span id="hud-bugs-smashed" class="telemetry-val">0</span>
           </div>
         </div>
         <div class="telemetry-pill accuracy-pill" title="Độ chính xác trung bình">
-          <span class="telemetry-icon" aria-hidden="true">🎯</span>
+          <span class="telemetry-icon" aria-hidden="true">ACC</span>
           <div class="telemetry-data">
             <span class="telemetry-label">CHÍNH XÁC</span>
             <span id="hud-accuracy" class="telemetry-val">100%</span>
@@ -100,15 +100,15 @@
       <!-- Utility Controls -->
       <div class="hud-utilities">
         <button id="btn-sound-toggle" class="icon-btn" type="button" aria-label="Bật/Tắt âm thanh chiến thuật" title="Bật/Tắt Âm thanh">
-          <span class="util-icon" aria-hidden="true">🔊</span>
+          <span class="util-icon" aria-hidden="true">SFX</span>
           <span class="util-label">ÂM THANH</span>
         </button>
         <button id="btn-theme-toggle" class="icon-btn" type="button" aria-label="Chuyển đổi giao diện Sáng/Tối" title="Chuyển chế độ Sáng / Tối">
-          <span class="util-icon" aria-hidden="true">🌗</span>
+          <span class="util-icon" aria-hidden="true">UI</span>
           <span class="util-label">GIAO DIỆN</span>
         </button>
         <button id="btn-reset-progress" class="icon-btn icon-btn-danger" type="button" aria-label="Đặt lại toàn bộ dữ liệu" title="Đặt lại tiến trình học tập">
-          <span class="util-icon" aria-hidden="true">↺</span>
+          <span class="util-icon" aria-hidden="true">RST</span>
           <span class="util-label">ĐẶT LẠI</span>
         </button>
       </div>
@@ -118,43 +118,43 @@
     <nav class="hud-nav" aria-label="Chế độ huấn luyện chính">
       <div class="hud-nav-inner">
         <button class="nav-tab" type="button" data-view="study">
-          <span class="nav-tab-icon" aria-hidden="true">📚</span>
-          <span class="nav-tab-text">1. Học Kiến Thức (6 Chương)</span>
+          <span class="nav-tab-icon" aria-hidden="true">01</span>
+          <span class="nav-tab-text">Học Giáo Trình</span>
           <span class="nav-tab-code">BÀI HỌC</span>
         </button>
         <button class="nav-tab active" type="button" data-view="campaign">
-          <span class="nav-tab-icon" aria-hidden="true">⚔️</span>
-          <span class="nav-tab-text">2. Chiến Dịch Đánh Trùm</span>
+          <span class="nav-tab-icon" aria-hidden="true">02</span>
+          <span class="nav-tab-text">Chiến Dịch Trùm</span>
           <span class="nav-tab-code">6 CHƯƠNG</span>
         </button>
         <button class="nav-tab" type="button" data-view="world3d">
-          <span class="nav-tab-icon" aria-hidden="true">🕹️</span>
-          <span class="nav-tab-text">Thế Giới 3D (Săn Bug)</span>
+          <span class="nav-tab-icon" aria-hidden="true">3D</span>
+          <span class="nav-tab-text">Thế Giới 3D</span>
           <span class="nav-tab-code">ĐI DẠO 3D</span>
         </button>
         <button class="nav-tab" type="button" data-view="exam">
-          <span class="nav-tab-icon" aria-hidden="true">🎓</span>
-          <span class="nav-tab-text">Thi Thử ISTQB Chuẩn</span>
+          <span class="nav-tab-icon" aria-hidden="true">40Q</span>
+          <span class="nav-tab-text">Thi Thử 40 Câu</span>
           <span class="nav-tab-code">40 CÂU</span>
         </button>
         <button class="nav-tab" type="button" data-view="blitz">
-          <span class="nav-tab-icon" aria-hidden="true">⚡</span>
-          <span class="nav-tab-text">60 Giây Đập Bug</span>
+          <span class="nav-tab-icon" aria-hidden="true">60S</span>
+          <span class="nav-tab-text">Đập Bug 60s</span>
           <span class="nav-tab-code">60 GIÂY</span>
         </button>
         <button class="nav-tab" type="button" data-view="flashcards">
-          <span class="nav-tab-icon" aria-hidden="true">🃏</span>
-          <span class="nav-tab-text">Thẻ Nhớ Thuật Ngữ</span>
+          <span class="nav-tab-icon" aria-hidden="true">SRS</span>
+          <span class="nav-tab-text">Thẻ Nhớ</span>
           <span class="nav-tab-code">LẬT THẺ</span>
         </button>
         <button class="nav-tab" type="button" data-view="codex">
-          <span class="nav-tab-icon" aria-hidden="true">📖</span>
-          <span class="nav-tab-text">Bí Kíp &amp; Thành Tựu</span>
+          <span class="nav-tab-icon" aria-hidden="true">DEX</span>
+          <span class="nav-tab-text">Bí Kíp &amp; Hồ Sơ</span>
           <span class="nav-tab-code">TRA CỨU</span>
         </button>
         <button class="nav-tab" type="button" data-view="ai">
-          <span class="nav-tab-icon" aria-hidden="true">🤖</span>
-          <span class="nav-tab-text">AI Soạn Đề Mới (OpenRouter)</span>
+          <span class="nav-tab-icon" aria-hidden="true">AI</span>
+          <span class="nav-tab-text">AI Soạn Đề</span>
           <span class="nav-tab-code">CHỐNG HỌC VẸT</span>
         </button>
       </div>
@@ -163,6 +163,16 @@
 
   <!-- Main Workspace -->
   <main class="main-workspace" role="main">
+    <div class="workspace-window-bar">
+      <div class="workspace-window-status">
+        <span class="status-dot pulse-cyan"></span>
+        <span>BẢNG ĐIỀU KHIỂN CHIẾN THUẬT — NHẤN [ESC] HOẶC NÚT ĐÓNG ĐỂ RA THẾ GIỚI 3D</span>
+      </div>
+      <div class="workspace-window-actions">
+        <button type="button" class="btn btn-sm btn-secondary" data-action="back-to-campaign">Về Trang Chủ Chiến Dịch</button>
+        <button type="button" class="btn btn-sm btn-danger-outline" data-action="close-workspace-panel">✕ Đóng Bảng Này (Ra Thế Giới 3D) [ESC]</button>
+      </div>
+    </div>
 
     <!-- ===================================================================
          VIEW 0: HỌC KIẾN THỨC TRƯỚC KHI THI (#view-study)
@@ -172,7 +182,7 @@
         <div class="codex-explorer-header">
           <div>
             <span class="status-badge badge-emerald">BƯỚC 1: HỌC GIÁO TRÌNH HTML FULL &amp; TƯƠNG TÁC THỰC CHIẾN</span>
-            <h2 id="study-heading" class="exam-main-title" style="margin-top:0.35rem;">📚 Học Giáo Trình Tiếng Việt Full &amp; Đánh Quái Từng Mục (6 Chương ISTQB)</h2>
+            <h2 id="study-heading" class="exam-main-title" style="margin-top:0.35rem;">Học Giáo Trình Tiếng Việt Full &amp; Đánh Quái Từng Mục (6 Chương ISTQB)</h2>
             <p class="section-hint">Đọc toàn bộ giáo trình chuẩn v4.0.1 tiếng Việt, diệt Quái Canh Cổng ngay dưới mỗi mục học hoặc mở Phòng Thí Nghiệm Toán K3!</p>
           </div>
           <div class="study-search-wrap">
@@ -184,14 +194,14 @@
         <div class="study-toolbar">
           <div class="study-mode-tabs">
             <button id="btn-study-mode-full" class="btn btn-sm btn-primary" type="button">
-              📘 Đọc Giáo Trình HTML Full + Đánh Quái Từng Mục
+              Đọc Giáo Trình HTML Full + Đánh Quái Từng Mục
             </button>
             <button id="btn-study-mode-sim" class="btn btn-sm btn-secondary" type="button">
-              🧮 Phòng Thí Nghiệm Tương Tác K3 (EP, BVA, Bảng Quyết Định, 3 Điểm)
+              Phòng Thí Nghiệm Tương Tác K3 (EP, BVA, Bảng Quyết Định, 3 Điểm)
             </button>
           </div>
           <button id="btn-study-ai-quiz" class="btn btn-sm btn-success" type="button">
-            🤖 Nhờ AI OpenRouter Soạn Bài Tập Mới Từ Mục Đang Học
+            Nhờ AI OpenRouter Soạn Bài Tập Mới Từ Mục Đang Học
           </button>
         </div>
 
@@ -205,7 +215,7 @@
         <!-- K3 Interactive Simulator Drawer -->
         <div id="study-k3-simulator" class="study-k3-simulator hidden" aria-label="Phòng thí nghiệm tương tác K3">
           <div class="k3-sim-box">
-            <h3 class="card-section-title">🧮 PHÒNG THÍ NGHIỆM TƯƠNG TÁC K3 (EP, BVA, BẢNG QUYẾT ĐỊNH, ƯỚC LƯỢNG 3 ĐIỂM)</h3>
+            <h3 class="card-section-title">PHÒNG THÍ NGHIỆM TƯƠNG TÁC K3 (EP, BVA, BẢNG QUYẾT ĐỊNH, ƯỚC LƯỢNG 3 ĐIỂM)</h3>
             <p class="section-hint">Thay đổi các thông số đầu vào để trực quan hóa các giá trị biên (2 giá trị &amp; 3 giá trị) và công thức ước lượng 3 điểm PERT ngay lập tức.</p>
           </div>
         </div>
@@ -229,17 +239,17 @@
           </div>
           <h2 id="campaign-heading" class="hero-title">Học Kiến Thức &amp; Tiêu Diệt 6 Đại Trùm Lỗi Hệ Thống</h2>
           <p class="hero-desc">
-            <strong>Lời khuyên cho người mới:</strong> Hãy bấm <strong>"📚 Bước 1: Học Lý Thuyết &amp; Ví Dụ Mẫu"</strong> ở từng Chương để nắm vững kiến thức và cách giải trước, sau đó mới bấm <strong>"⚔️ Bước 2: Vào Đánh Trùm"</strong> hoặc điều khiển Chiến Binh 3D đi săn Bug!
+            <strong>Lời khuyên cho người mới:</strong> Hãy bấm <strong>"Bước 1: Học Lý Thuyết &amp; Ví Dụ Mẫu"</strong> ở từng Chương để nắm vững kiến thức và cách giải trước, sau đó mới bấm <strong>"Bước 2: Vào Đánh Trùm"</strong> hoặc điều khiển Chiến Binh 3D đi săn Bug!
           </p>
           <div class="hero-quick-actions">
             <button id="btn-practice-all" class="btn btn-primary" type="button" data-action="practice-all">
-              <span aria-hidden="true">🚀</span> Tuần Tra Tổng Hợp (Tất Cả Chương)
+              Tuần Tra Tổng Hợp (Tất Cả Chương)
             </button>
             <button id="btn-k3-lab" class="btn btn-secondary" type="button" data-action="k3-lab">
-              <span aria-hidden="true">🧪</span> Phòng Thực Hành K3 (Phân Vùng, Biên, Bảng Quyết Định)
+              Phòng Thực Hành K3 (Phân Vùng, Biên, Bảng Quyết Định)
             </button>
             <button id="btn-mistake-raid" class="btn btn-danger-outline" type="button" data-action="mistake-raid">
-              <span aria-hidden="true">💀</span> Sổ Thù Vặt (Ôn Lại Câu Sai)
+              Sổ Thù Vặt (Ôn Lại Câu Sai)
               <span id="mistake-count" class="badge-pill badge-rose">0</span>
             </button>
           </div>
@@ -310,7 +320,7 @@
         </div>
 
         <div class="arena-timer-box" title="Thời gian suy nghĩ câu hỏi">
-          <span class="timer-icon" aria-hidden="true">⏱️</span>
+          <span class="timer-icon" aria-hidden="true">TIME</span>
           <span id="arena-timer" class="mono-timer">00:00</span>
         </div>
       </div>
@@ -319,11 +329,11 @@
       <div id="arena-battle-stage" class="arena-battle-stage">
         <canvas id="battle-stage-canvas" width="1100" height="290" aria-label="Sân khấu chiến đấu tương tác giữa Chiến Binh Tester và Đại Trùm Chương"></canvas>
         <div class="battle-stage-controls">
-          <button id="btn-stage-slash" class="btn btn-sm btn-secondary" type="button" title="Lao lên chém kiếm Plasma vào Trùm">⚔️ Chém Kiếm Plasma</button>
-          <button id="btn-stage-shoot" class="btn btn-sm btn-secondary" type="button" title="Bắn đạn Laser vào Điểm Yếu trên người Trùm">🔫 Bắn Điểm Yếu</button>
-          <button id="btn-stage-shield" class="btn btn-sm btn-secondary" type="button" title="Bật Khiên Năng Lượng giảm 75% sát thương khi Trùm đánh">🛡️ Bật Khiên Đỡ Đòn</button>
-          <button id="btn-stage-ult" class="btn btn-sm btn-primary" type="button" title="Tung Tuyệt Kỹ Orbital Laser khi đầy Nộ">⚡ Tuyệt Kỹ Diệt Trùm (<span id="stage-fury-pct">0%</span>)</button>
-          <button id="btn-arena-ai-gen" class="btn btn-sm btn-success" type="button" title="Dùng AI OpenRouter soạn bộ câu hỏi mới tinh từ Giáo trình cho trận này">🤖 AI Soạn Đề Mới Cho Trùm Này</button>
+          <button id="btn-stage-slash" class="btn btn-sm btn-secondary" type="button" title="Lao lên chém kiếm Plasma vào Trùm">Chém Kiếm Plasma [1]</button>
+          <button id="btn-stage-shoot" class="btn btn-sm btn-secondary" type="button" title="Bắn đạn Laser vào Điểm Yếu trên người Trùm">Bắn Điểm Yếu [2]</button>
+          <button id="btn-stage-shield" class="btn btn-sm btn-secondary" type="button" title="Bật Khiên Năng Lượng giảm 75% sát thương khi Trùm đánh">Bật Khiên Đỡ Đòn [3]</button>
+          <button id="btn-stage-ult" class="btn btn-sm btn-primary" type="button" title="Tung Tuyệt Kỹ Orbital Laser khi đầy Nộ">Tuyệt Kỹ Orbital Laser [R] (<span id="stage-fury-pct">0%</span>)</button>
+          <button id="btn-arena-ai-gen" class="btn btn-sm btn-success" type="button" title="Dùng AI OpenRouter soạn bộ câu hỏi mới tinh từ Giáo trình cho trận này">AI Soạn Đề Mới</button>
         </div>
       </div>
 
@@ -332,7 +342,7 @@
         <!-- Player Fighter Card -->
         <div id="player-combat-card" class="combatant-card player-card">
           <div class="combatant-header">
-            <div class="combatant-avatar player-avatar" aria-hidden="true">🛡️</div>
+            <div class="combatant-avatar player-avatar" aria-hidden="true">QA</div>
             <div class="combatant-identity">
               <div class="combatant-name-row">
                 <span class="combatant-role">CHIẾN BINH TESTER</span>
@@ -361,7 +371,7 @@
         <!-- Boss Fighter Card -->
         <div id="boss-combat-card" class="combatant-card boss-card">
           <div class="combatant-header">
-            <div id="boss-avatar" class="combatant-avatar boss-avatar" aria-hidden="true">👾</div>
+            <div id="boss-avatar" class="combatant-avatar boss-avatar" aria-hidden="true">BOSS</div>
             <div class="combatant-identity">
               <div class="combatant-name-row">
                 <span id="boss-title" class="combatant-role text-rose">Trùm Lỗi Nhận Thức &amp; Nguyên Lý</span>
@@ -387,22 +397,22 @@
       <div class="powerups-bar" role="toolbar" aria-label="Công cụ trợ chiến">
         <span class="powerups-label">KỸ NĂNG HỖ TRỢ:</span>
         <button id="powerup-5050" class="powerup-btn" type="button" title="Loại bỏ 2 phương án sai">
-          <span class="pu-icon" aria-hidden="true">🔍</span>
+          <span class="pu-icon" aria-hidden="true">50/50</span>
           <span class="pu-name">Loại 2 Đáp Án Sai</span>
           <span class="pu-count" data-pu-count="5050">1</span>
         </button>
         <button id="powerup-freeze" class="powerup-btn" type="button" title="Đóng băng đồng hồ &amp; nhận thêm XP">
-          <span class="pu-icon" aria-hidden="true">❄️</span>
+          <span class="pu-icon" aria-hidden="true">ICE</span>
           <span class="pu-name">Đóng Băng Giờ</span>
           <span class="pu-count" data-pu-count="freeze">1</span>
         </button>
         <button id="powerup-peek" class="powerup-btn" type="button" title="Mở/Ẩn bài học lý thuyết của mục này (Miễn phí &amp; Không giới hạn)">
-          <span class="pu-icon" aria-hidden="true">📖</span>
-          <span class="pu-name">📖 Mở Bài Học Mục Này</span>
+          <span class="pu-icon" aria-hidden="true">DOC</span>
+          <span class="pu-name">Mở Bài Học Mục Này</span>
           <span class="pu-count" data-pu-count="peek">∞</span>
         </button>
         <button id="powerup-shield" class="powerup-btn" type="button" title="Hồi phục +30 Máu Chiến Binh">
-          <span class="pu-icon" aria-hidden="true">💉</span>
+          <span class="pu-icon" aria-hidden="true">+HP</span>
           <span class="pu-name">Hồi +30 Máu</span>
           <span class="pu-count" data-pu-count="shield">1</span>
         </button>
@@ -441,7 +451,7 @@
         <!-- Post-Answer Feedback & Syllabus Explanation Panel -->
         <div id="q-feedback-panel" class="q-feedback-panel hidden" aria-live="polite">
           <div class="feedback-header">
-            <h4 id="q-feedback-title" class="feedback-title">🔥 ĐÒN ĐÁNH CHÍ MẠNG! CHÍNH XÁC!</h4>
+            <h4 id="q-feedback-title" class="feedback-title">ĐÒN ĐÁNH CHÍ MẠNG! CHÍNH XÁC!</h4>
           </div>
           <div class="feedback-body">
             <div class="explanation-block">
@@ -449,7 +459,7 @@
               <p id="q-explanation-text" class="explanation-text"></p>
             </div>
             <div class="mnemonic-block">
-              <span class="mnemonic-icon" aria-hidden="true">💡</span>
+              <span class="mnemonic-icon" aria-hidden="true">TIP</span>
               <div class="mnemonic-content">
                 <span class="block-label text-amber">MẸO GHI NHỚ NHANH:</span>
                 <p id="q-mnemonic-text" class="mnemonic-text"></p>
@@ -559,13 +569,13 @@
 
         <div class="exam-intro-actions">
           <button id="btn-start-exam" class="btn btn-primary btn-lg" type="button">
-            <span aria-hidden="true">🎯</span> Bắt Đầu Kỳ Thi Thử (40 Câu / 60 Phút)
+            Bắt Đầu Kỳ Thi Thử (40 Câu / 60 Phút)
           </button>
           <button id="btn-start-ai-exam" class="btn btn-success btn-lg" type="button">
-            <span aria-hidden="true">🤖</span> Thi Đề Mới Tinh Do AI + Bộ Biến Thể Động Tạo (Chống Học Thuộc Lòng)
+            Thi Đề Mới Tinh Do AI + Bộ Biến Thể Động Tạo (Chống Học Thuộc Lòng)
           </button>
           <button id="btn-open-ai-settings" class="btn btn-secondary btn-lg" type="button">
-            <span aria-hidden="true">⚙️</span> Cấu Hình OpenRouter AI
+            Cấu Hình OpenRouter AI
           </button>
         </div>
 
@@ -583,16 +593,16 @@
           </div>
 
           <div class="exam-timer-cluster">
-            <span aria-hidden="true">⏳</span>
+            <span class="timer-icon" aria-hidden="true">TIME</span>
             <span id="exam-timer" class="mono-timer">60:00</span>
           </div>
 
           <div class="exam-actions-right">
             <button id="btn-exam-flag" class="btn btn-secondary btn-sm" type="button">
-              <span aria-hidden="true">🚩</span> Đánh dấu xem lại
+              Đánh dấu xem lại
             </button>
             <button id="btn-exam-submit" class="btn btn-primary btn-sm" type="button">
-              <span aria-hidden="true">✓</span> Nộp Bài Thi
+              Nộp Bài Thi
             </button>
           </div>
         </div>
@@ -649,7 +659,7 @@
             </div>
             <div class="exam-result-actions">
               <button id="btn-exam-retry" class="btn btn-primary" type="button">
-                <span aria-hidden="true">🔄</span> Thi Đề Mới (40 Câu Khác)
+                Thi Đề Mới (40 Câu Khác)
               </button>
             </div>
           </div>
@@ -673,17 +683,17 @@
         <div class="blitz-badge-wrap">
           <span class="status-badge badge-amber">LUYỆN PHẢN XẠ SIÊU TỐC</span>
         </div>
-        <h2 id="blitz-heading" class="exam-main-title">⚡ 60 Giây Đập Bug Tốc Độ</h2>
+        <h2 id="blitz-heading" class="exam-main-title">60 Giây Đập Bug Tốc Độ</h2>
         <p class="exam-intro-desc">
           60 giây sinh tử! Trả lời nhanh và chính xác nhất có thể để nhân hệ số Liên Kích từ <strong>x1</strong> lên <strong>x5</strong>. Mỗi chuỗi 5 câu đúng liên tiếp sẽ thưởng nóng <strong>+2 giây</strong> vào đồng hồ đếm ngược!
         </p>
         <div class="blitz-rules-row">
-          <div class="rule-pill">⏱️ 60 Giây Cố Định</div>
-          <div class="rule-pill">🔥 Chuỗi 5 Câu Đúng = +2 Giây</div>
-          <div class="rule-pill">⚡ Nhân Điểm Tối Đa x5</div>
+          <div class="rule-pill">60 Giây Cố Định</div>
+          <div class="rule-pill">Chuỗi 5 Câu Đúng = +2 Giây</div>
+          <div class="rule-pill">Nhân Điểm Tối Đa x5</div>
         </div>
         <button id="btn-start-blitz" class="btn btn-primary btn-lg" type="button">
-          <span aria-hidden="true">⚡</span> Bắt Đầu Đập Bug 60 Giây!
+          Bắt Đầu Đập Bug 60 Giây!
         </button>
       </div>
 
@@ -767,7 +777,7 @@
               <div class="fc-face-center fc-back-scroll">
                 <p id="fc-back-def" class="fc-def-text"></p>
                 <div class="fc-hook-box">
-                  <span class="hook-label">💡 MẸO GHI NHỚ NHANH:</span>
+                  <span class="hook-label">MẸO GHI NHỚ NHANH:</span>
                   <p id="fc-back-hook" class="fc-hook-text"></p>
                 </div>
               </div>
@@ -782,13 +792,13 @@
           <span aria-hidden="true">←</span> Thẻ Trước
         </button>
         <button id="btn-fc-flip" class="btn btn-ghost" type="button">
-          <span aria-hidden="true">🔄</span> Lật Thẻ (<kbd>F</kbd>)
+          Lật Thẻ (<kbd>F</kbd>)
         </button>
         <button id="btn-fc-review" class="btn btn-warning-outline" type="button">
-          <span aria-hidden="true">📌</span> Cần Ôn Lại
+          Cần Ôn Lại
         </button>
         <button id="btn-fc-know" class="btn btn-success" type="button">
-          <span aria-hidden="true">✓</span> Đã Thuộc Lòng (+XP)
+          Đã Thuộc Lòng (+XP)
         </button>
         <button id="btn-fc-next" class="btn btn-secondary" type="button">
           Thẻ Tiếp <span aria-hidden="true">→</span>
@@ -803,14 +813,14 @@
       <!-- Mastery Analytics & Achievements Row -->
       <div class="codex-dashboard-grid">
         <div class="codex-panel">
-          <h2 id="codex-heading" class="card-section-title">📊 ĐỘ THÔNG THẠO THEO 6 CHƯƠNG</h2>
+          <h2 id="codex-heading" class="card-section-title">ĐỘ THÔNG THẠO THEO 6 CHƯƠNG</h2>
           <div id="mastery-chart" class="mastery-chart-box">
             <!-- Mastery progress bars injected by app.js -->
           </div>
         </div>
 
         <div class="codex-panel">
-          <h3 class="card-section-title">🏆 HUY HIỆU CHIẾN CÔNG KIỂM THỬ</h3>
+          <h3 class="card-section-title">HUY HIỆU CHIẾN CÔNG KIỂM THỬ</h3>
           <div id="achievements-grid" class="achievements-grid">
             <!-- Achievements badges injected by app.js -->
           </div>
@@ -821,7 +831,7 @@
       <div class="codex-explorer-card">
         <div class="codex-explorer-header">
           <div>
-            <h3 class="card-section-title">📡 BÍ KÍP CỐT LÕI ISTQB CTFL v4.0.1 (TÓM TẮT TOÀN THƯ)</h3>
+            <h3 class="card-section-title">BÍ KÍP CỐT LÕI ISTQB CTFL v4.0.1 (TÓM TẮT TOÀN THƯ)</h3>
             <p class="section-hint">Tóm tắt cô đọng toàn bộ công thức, bảng phân biệt và từ khóa bẫy thường gặp trong đề thi thật.</p>
           </div>
           <div class="codex-search-wrap">
@@ -848,7 +858,7 @@
         <div class="codex-explorer-header">
           <div>
             <span class="status-badge badge-cyan">KẾT NỐI ĐA NHÀ CUNG CẤP AI &amp; BỂ KHÓA API</span>
-            <h2 id="ai-heading" class="exam-main-title" style="margin-top:0.35rem;">🤖 Trung Tâm AI OpenRouter — Soạn Đề Mới Từ Giáo Trình (Chống Học Vẹt)</h2>
+            <h2 id="ai-heading" class="exam-main-title" style="margin-top:0.35rem;">Trung Tâm AI OpenRouter — Soạn Đề Mới Từ Giáo Trình (Chống Học Vẹt)</h2>
             <p class="section-hint">Kết nối OpenRouter, Google Gemini, Ollama hoặc OpenAI để AI đọc trực tiếp Giáo trình ISTQB CTFL v4.0.1 Tiếng Việt và sinh câu hỏi mới tinh mỗi lần luyện tập.</p>
           </div>
         </div>
@@ -856,15 +866,15 @@
         <div class="ai-config-grid">
           <!-- Left Panel: Provider, Model & API Key Pool -->
           <div class="ai-panel-card">
-            <h3 class="card-section-title">⚙️ CẤU HÌNH NHÀ CUNG CẤP &amp; BỂ KHÓA API</h3>
+            <h3 class="card-section-title">CẤU HÌNH NHÀ CUNG CẤP &amp; BỂ KHÓA API</h3>
 
             <div class="ai-form-group">
               <label for="ai-provider-select" class="ai-label">Nhà Cung Cấp AI (Provider)</label>
               <select id="ai-provider-select" class="tactical-select ai-input-full">
-                <option value="openrouter">🌐 OpenRouter (Khuyên dùng - Hỗ trợ hàng trăm Model &amp; Free Router)</option>
-                <option value="gemini">✨ Google Gemini (Google AI Studio)</option>
-                <option value="ollama">🏠 Ollama / Local AI Server (https://ai-api.congnghevietha.vn / Localhost)</option>
-                <option value="openai">🧠 OpenAI (ChatGPT Official)</option>
+                <option value="openrouter">OpenRouter (Khuyên dùng - Hỗ trợ hàng trăm Model &amp; Free Router)</option>
+                <option value="gemini">Google Gemini (Google AI Studio)</option>
+                <option value="ollama">Ollama / Local AI Server (https://ai-api.congnghevietha.vn / Localhost)</option>
+                <option value="openai">OpenAI (ChatGPT Official)</option>
               </select>
             </div>
 
@@ -883,14 +893,14 @@
               </div>
               <div class="ai-form-row">
                 <select id="ai-model-select" class="tactical-select" style="flex:1;">
-                  <option value="openrouter/auto">openrouter/auto (Tự động chọn Model tối ưu)</option>
+                  <option value="openrouter/free">openrouter/free (Tự động chọn Model Miễn Phí $0)</option>
                   <option value="google/gemini-2.0-flash-exp:free">google/gemini-2.0-flash-exp:free (Miễn phí)</option>
                   <option value="google/gemini-2.0-flash-001">google/gemini-2.0-flash-001</option>
                   <option value="meta-llama/llama-3.3-70b-instruct:free">meta-llama/llama-3.3-70b-instruct:free (Miễn phí)</option>
                   <option value="deepseek/deepseek-chat-v3-0324:free">deepseek/deepseek-chat-v3-0324:free (Miễn phí)</option>
                 </select>
                 <button id="btn-ai-refresh-models" class="btn btn-secondary btn-sm" type="button">
-                  🔄 Tải Danh Sách Model
+                  Tải Danh Sách Model
                 </button>
               </div>
             </div>
@@ -906,13 +916,13 @@
             <div class="ai-form-group ai-keys-pool-box">
               <div class="ai-label-row">
                 <label for="ai-keys-textarea" class="ai-label">Bể Khóa API (Dán 1 hoặc nhiều Key, cách nhau bằng dấu phẩy hoặc xuống dòng)</label>
-                <a class="ai-key-link" href="https://openrouter.ai/keys" target="_blank" rel="noopener">🔑 Lấy Key OpenRouter →</a>
+                <a class="ai-key-link" href="https://openrouter.ai/keys" target="_blank" rel="noopener">Lấy Key OpenRouter →</a>
               </div>
               <textarea id="ai-keys-textarea" class="tactical-input ai-textarea" rows="3" placeholder="sk-or-v1-xxxx...&#10;sk-or-v1-yyyy..."></textarea>
               <div class="ai-key-actions">
-                <button id="btn-ai-add-key" class="btn btn-secondary btn-sm" type="button">➕ Thêm Vào Bể Khóa</button>
-                <button id="btn-ai-save-config" class="btn btn-primary btn-sm" type="button">💾 Lưu Cấu Hình AI</button>
-                <button id="btn-ai-test-keys" class="btn btn-success btn-sm" type="button">⚡ Kiểm Tra Toàn Bộ Key (Ping &amp; Đo ms)</button>
+                <button id="btn-ai-add-key" class="btn btn-secondary btn-sm" type="button">Thêm Vào Bể Khóa</button>
+                <button id="btn-ai-save-config" class="btn btn-primary btn-sm" type="button">Lưu Cấu Hình AI</button>
+                <button id="btn-ai-test-keys" class="btn btn-success btn-sm" type="button">Kiểm Tra Toàn Bộ Key (Ping &amp; Đo ms)</button>
               </div>
 
               <div class="ai-keys-table-wrap">
@@ -928,7 +938,25 @@
                   </thead>
                   <tbody id="ai-keys-table-body">
                     <tr>
-                      <td colspan="5" class="text-muted" style="text-align:center;">Chưa có API Key nào được lưu. Dán key ở trên để thêm vào bể khóa.</td>
+                      <td>#1</td>
+                      <td><span class="meta-badge badge-cyan">OPENROUTER</span></td>
+                      <td class="mono-text">sk-or-v1••••c1d8</td>
+                      <td><span class="meta-badge badge-emerald">Sẵn sàng</span></td>
+                      <td><button type="button" class="btn btn-sm btn-secondary" data-ai-remove-key="0">Xóa</button></td>
+                    </tr>
+                    <tr>
+                      <td>#2</td>
+                      <td><span class="meta-badge badge-cyan">OPENROUTER</span></td>
+                      <td class="mono-text">sk-or-v1••••3f85</td>
+                      <td><span class="meta-badge badge-emerald">Sẵn sàng</span></td>
+                      <td><button type="button" class="btn btn-sm btn-secondary" data-ai-remove-key="1">Xóa</button></td>
+                    </tr>
+                    <tr>
+                      <td>#3</td>
+                      <td><span class="meta-badge badge-cyan">OPENROUTER</span></td>
+                      <td class="mono-text">sk-or-v1••••617b</td>
+                      <td><span class="meta-badge badge-emerald">Sẵn sàng</span></td>
+                      <td><button type="button" class="btn btn-sm btn-secondary" data-ai-remove-key="2">Xóa</button></td>
                     </tr>
                   </tbody>
                 </table>
@@ -942,7 +970,7 @@
 
           <!-- Right Panel: AI Question Generator Center -->
           <div class="ai-panel-card">
-            <h3 class="card-section-title">🚀 TRUNG TÂM AI SOẠN ĐỀ THI MỚI DỰA VÀO GIÁO TRÌNH FULL</h3>
+            <h3 class="card-section-title">TRUNG TÂM AI SOẠN ĐỀ THI MỚI DỰA VÀO GIÁO TRÌNH FULL</h3>
             <p class="section-hint" style="margin-bottom:1rem;">
               Hệ thống trích xuất nguyên văn nội dung từ Giáo trình ISTQB CTFL v4.0.1 Tiếng Việt làm ngữ cảnh (RAG) gửi cho AI soạn đề mới, hoặc dùng Bộ Biến Thể Toán K3 đổi số liệu tự động không cần mạng!
             </p>
@@ -984,10 +1012,10 @@
 
               <div class="ai-gen-actions">
                 <button id="btn-ai-generate-now" class="btn btn-primary btn-lg" type="button" style="width:100%;">
-                  🚀 AI Soạn Bộ Câu Hỏi Mới Tinh Từ Giáo Trình &amp; Vào Thi Ngay!
+                  AI Soạn Bộ Câu Hỏi Mới Tinh Từ Giáo Trình &amp; Vào Thi Ngay!
                 </button>
                 <button id="btn-dynamic-k3-now" class="btn btn-success" type="button" style="width:100%;">
-                  🎲 Tạo Nhanh Đề Biến Thể Toán K3 Mới (Không Cần API Key - Đảo Số Liệu &amp; Đáp Án)
+                  Tạo Nhanh Đề Biến Thể Toán K3 Mới (Không Cần API Key - Đảo Số Liệu &amp; Đáp Án)
                 </button>
               </div>
 
@@ -997,7 +1025,7 @@
             </div>
 
             <div class="ai-preview-header">
-              <h4 class="card-section-title" style="margin-top:1.25rem;">📋 XEM TRƯỚC CÂU HỎI AI VỪA SOẠN</h4>
+              <h4 class="card-section-title" style="margin-top:1.25rem;">XEM TRƯỚC CÂU HỎI AI VỪA SOẠN</h4>
             </div>
             <div id="ai-generated-preview" class="ai-generated-preview">
               <p class="text-muted">Chưa có bộ đề AI nào được tạo trong phiên này. Bấm một trong hai nút ở trên để tạo đề mới!</p>
@@ -1016,6 +1044,7 @@
     <div class="modal-card">
       <div class="modal-glow-bar" aria-hidden="true"></div>
       <div class="modal-header">
+        <button type="button" class="btn btn-sm btn-ghost" data-action="close-result-modal" style="position:absolute;top:12px;right:12px;">✕ Đóng [ESC]</button>
         <span class="status-badge badge-cyan">BÁO CÁO TRẬN ĐẤU</span>
         <h2 id="result-title" class="modal-title">CHIẾN THẮNG! ĐẠI TRÙM ĐÃ BỊ TIÊU DIỆT</h2>
         <p id="result-subtitle" class="modal-subtitle">Bạn đã làm chủ hoàn toàn kiến thức chương này.</p>
@@ -1027,10 +1056,10 @@
 
       <div class="modal-actions">
         <button id="btn-result-retry" class="btn btn-secondary" type="button">
-          <span aria-hidden="true">🔄</span> Đánh Lại Trận Này
+          Đánh Lại Trận Này
         </button>
         <button id="btn-result-continue" class="btn btn-primary" type="button">
-          <span aria-hidden="true">✓</span> Tiếp Tục Chiến Dịch
+          Tiếp Tục Chiến Dịch
         </button>
       </div>
     </div>
@@ -1040,6 +1069,7 @@
   <script src="js/data-chap123.js"></script>
   <script src="js/data-chap456.js"></script>
   <script src="js/syllabus-full-vi.js"></script>
+  <script src="js/local-keys.js"></script>
   <script src="js/ai-provider.js"></script>
   <script src="js/three.min.js"></script>
   <script src="js/world3d.js"></script>

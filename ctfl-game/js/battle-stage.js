@@ -357,10 +357,10 @@
     var h = 32;
     var gap = 10;
     var specs = [
-      { id: 'slash', label: '⚔️ Chém Kiếm [1]', w: 146, bg: 'rgba(14, 165, 233, 0.24)', border: '#38bdf8' },
-      { id: 'shoot', label: '🔫 Bắn Laser [2]', w: 146, bg: 'rgba(16, 185, 129, 0.22)', border: '#34d399' },
-      { id: 'shield', label: '🛡️ Bật Khiên [3]', w: 146, bg: 'rgba(99, 102, 241, 0.24)', border: '#818cf8' },
-      { id: 'ult', label: '⚡ Tuyệt Kỹ [R]', w: 158, bg: 'rgba(245, 158, 11, 0.25)', border: '#fbbf24' }
+      { id: 'slash', label: 'Chém Kiếm [1]', w: 146, bg: 'rgba(14, 165, 233, 0.24)', border: '#38bdf8' },
+      { id: 'shoot', label: 'Bắn Laser [2]', w: 146, bg: 'rgba(16, 185, 129, 0.22)', border: '#34d399' },
+      { id: 'shield', label: 'Bật Khiên [3]', w: 146, bg: 'rgba(99, 102, 241, 0.24)', border: '#818cf8' },
+      { id: 'ult', label: 'Tuyệt Kỹ [R]', w: 158, bg: 'rgba(245, 158, 11, 0.25)', border: '#fbbf24' }
     ];
     var totalW = 0;
     for (var i = 0; i < specs.length; i++) totalW += specs[i].w;
@@ -486,14 +486,14 @@
     } else if (actionId === 'shield') {
       state.shieldActive = true;
       state.shieldTimer = 4.0;
-      state.heroSpeech = '🛡️ Khiên Lục Giác Sẵn Sàng!';
+      state.heroSpeech = 'Khiên Lục Giác Sẵn Sàng!';
       state.heroSpeechTimer = 2.2;
       spawnShockwave(getHeroAnchor().x + 28, getHeroAnchor().y - 10, '#34d399', 64);
-      spawnFloatingText(getHeroAnchor().x, getHeroAnchor().y - 72, '🛡️ BẬT KHIÊN (4s)', '#34d399', 1.0);
+      spawnFloatingText(getHeroAnchor().x, getHeroAnchor().y - 72, 'BẬT KHIÊN (4s)', '#34d399', 1.0);
       triggerCallback({ type: 'shield', duration: 4 });
     } else if (actionId === 'ult') {
       if (state.fury < 100) {
-        spawnFloatingText(getHeroAnchor().x + 40, getHeroAnchor().y - 68, '⚡ Cần 100% Nộ!', '#fbbf24', 0.95);
+        spawnFloatingText(getHeroAnchor().x + 40, getHeroAnchor().y - 68, 'Cần 100% Nộ!', '#fbbf24', 0.95);
         return;
       }
       api.heroUltimate();
@@ -547,7 +547,7 @@
       state.weakpoint.cooldown = 3.2;
       state.fury = clamp(state.fury + 20, 0, 100);
       api.heroAttack(true);
-      spawnFloatingText(wpX, wpY - 26, '🎯 TRÚNG ĐIỂM YẾU! -3 HP | +20% NỘ | +5 XP', '#fde047', 1.15);
+      spawnFloatingText(wpX, wpY - 26, '[CHÍ MẠNG] TRÚNG ĐIỂM YẾU! -3 HP | +20% NỘ | +5 XP', '#fde047', 1.15);
       triggerCallback({ type: 'weakpoint_hit', damage: 3, xp: 5, fury: 20 });
       if (state.fury >= 100 && typeof state.onUltimateReady === 'function') {
         try { state.onUltimateReady(); } catch (e) {}
@@ -557,7 +557,7 @@
       state.actionCooldown = 0.55;
       api.heroShoot();
       state.fury = clamp(state.fury + 10, 0, 100);
-      spawnFloatingText(pt.x, pt.y - 18, '🔫 BẮN TRỰC DIỆN! -2 HP', '#38bdf8', 1.0);
+      spawnFloatingText(pt.x, pt.y - 18, 'BẮN TRỰC DIỆN! -2 HP', '#38bdf8', 1.0);
       triggerCallback({ type: 'shoot', damage: 2, fury: 10 });
     }
   }
@@ -1130,7 +1130,7 @@
     ctx.stroke();
 
     // Label pill
-    var label = '🎯 ĐIỂM YẾU BUG (Click để chém!)';
+    var label = 'ĐIỂM YẾU [CLICK]';
     ctx.font = 'bold 11px sans-serif';
     var tw = safeMeasureWidth(ctx, label) + 14;
     ctx.fillStyle = 'rgba(15, 23, 42, 0.88)';
@@ -1288,7 +1288,7 @@
     ctx.fillStyle = '#e2e8f0';
     ctx.font = 'bold 12px sans-serif';
     ctx.textAlign = 'left';
-    ctx.fillText('🛡️ Chiến Binh QA', hx + 10, hy + 17);
+    ctx.fillText('Chiến Binh QA', hx + 10, hy + 17);
 
     if (state.combo > 1) {
       ctx.fillStyle = '#fde047';
@@ -1321,7 +1321,7 @@
     if (state.shieldActive) {
       ctx.fillStyle = '#34d399';
       ctx.textAlign = 'right';
-      ctx.fillText('🛡️ KHIÊN (' + state.shieldTimer.toFixed(1) + 's)', hx + 200, hy + 58);
+      ctx.fillText('KHIÊN (' + state.shieldTimer.toFixed(1) + 's)', hx + 200, hy + 58);
     }
     ctx.restore();
 
@@ -1339,7 +1339,7 @@
     ctx.fillStyle = '#f8fafc';
     ctx.font = 'bold 12px sans-serif';
     ctx.textAlign = 'left';
-    ctx.fillText('👾 ' + state.bossName, bx + 10, by + 18);
+    ctx.fillText(state.bossName, bx + 10, by + 18);
 
     ctx.fillStyle = theme.glow;
     ctx.font = '10.5px sans-serif';
@@ -1413,7 +1413,7 @@
     ctx.fillStyle = '#fde047';
     ctx.font = 'bold 20px sans-serif';
     ctx.textAlign = 'center';
-    ctx.fillText('🏆 ĐẠI TRÙM ĐÃ BỊ TIÊU DIỆT!', state.width * 0.5, by + 35);
+    ctx.fillText('ĐÃ HẠ GỤC TRÙM!', state.width * 0.5, by + 35);
     ctx.fillStyle = '#a7f3d0';
     ctx.font = '13px sans-serif';
     ctx.fillText('Sân khấu đã được giải phóng khỏi toàn bộ Bug!', state.width * 0.5, by + 56);
@@ -1715,11 +1715,11 @@
         state.flashAlpha = 0.22;
         state.flashColor = '#fde047';
         spawnFloatingText(bossPos.x, bossPos.y - 72, '-25 HP CHÍ MẠNG!', '#fde047', 1.35);
-        state.heroSpeech = '⚡ Nhất Kích Tất Sát!';
+        state.heroSpeech = 'Nhất Kích Tất Sát!';
         state.heroSpeechTimer = 2.0;
       } else {
         state.screenShake = 5;
-        spawnFloatingText(bossPos.x, bossPos.y - 64, '⚔️ TRÚNG ĐÒN!', '#38bdf8', 1.1);
+        spawnFloatingText(bossPos.x, bossPos.y - 64, 'TRÚNG ĐÒN!', '#38bdf8', 1.1);
       }
     },
 
@@ -1750,8 +1750,8 @@
       var heroPos = getHeroAnchor();
       spawnShockwave(heroPos.x + 42, heroPos.y - 6, '#34d399', 88);
       spawnParticles(heroPos.x + 42, heroPos.y - 6, '#34d399', 22, 1.0, 1.0);
-      spawnFloatingText(heroPos.x + 25, heroPos.y - 76, '🛡️ ĐỠ ĐÒN THÀNH CÔNG! GIẢM 75% SÁT THƯƠNG!', '#34d399', 1.15);
-      state.heroSpeech = '🛡️ Khiên Hologram đã chặn đòn!';
+      spawnFloatingText(heroPos.x + 25, heroPos.y - 76, 'ĐỠ ĐÒN THÀNH CÔNG! GIẢM 75% SÁT THƯƠNG!', '#34d399', 1.15);
+      state.heroSpeech = 'Khiên Hologram đã chặn đòn!';
       state.heroSpeechTimer = 2.4;
     },
 
@@ -1767,8 +1767,8 @@
       var bossPos = getBossAnchor();
       spawnShockwave(bossPos.x, bossPos.y, '#fde047', 160);
       spawnParticles(bossPos.x, bossPos.y, '#fde047', 45, 1.5, 1.3);
-      spawnFloatingText(bossPos.x, bossPos.y - 82, '⚡ TUYỆT KỸ VŨ TRỤ! -15 HP!', '#fde047', 1.45);
-      state.heroSpeech = '⚡ ORBITAL QA LASER — DIỆT BUG!';
+      spawnFloatingText(bossPos.x, bossPos.y - 82, 'TUYỆT KỸ VŨ TRỤ! -15 HP!', '#fde047', 1.45);
+      state.heroSpeech = 'ORBITAL QA LASER — DIỆT BUG!';
       state.heroSpeechTimer = 2.8;
     },
 
@@ -1798,7 +1798,7 @@
       state.flashAlpha = 0.2;
       state.flashColor = '#ef4444';
       spawnParticles(heroPos.x, heroPos.y - 10, '#f43f5e', 20, 1.0, 1.0);
-      spawnFloatingText(heroPos.x, heroPos.y - 68, '💥 TRÚNG ĐÒN TRÙM!', '#fb7185', 1.15);
+      spawnFloatingText(heroPos.x, heroPos.y - 68, 'TRÚNG ĐÒN TRÙM!', '#fb7185', 1.15);
       state.bossSpeech = theme.taunts[Math.floor(Math.random() * theme.taunts.length)];
       state.bossSpeechTimer = 3.0;
     },
@@ -1816,7 +1816,7 @@
       spawnParticles(bossPos.x, bossPos.y, '#fde047', 70, 1.7, 1.4);
       spawnParticles(bossPos.x, bossPos.y, '#38bdf8', 55, 1.5, 1.2);
       spawnParticles(bossPos.x, bossPos.y, '#f43f5e', 45, 1.4, 1.1);
-      state.heroSpeech = '🏆 ĐẠI TRÙM ĐÃ BỊ HẠ GỤC!';
+      state.heroSpeech = 'ĐẠI TRÙM ĐÃ BỊ HẠ GỤC!';
       state.heroSpeechTimer = 4.0;
     },
 
@@ -1881,7 +1881,7 @@
         '<div class="mini-battle-card" style="border:1px solid rgba(56,189,248,0.35);border-radius:14px;padding:14px;background:rgba(15,23,42,0.86);margin-top:12px;">' +
           '<div style="display:flex;justify-content:space-between;align-items:center;gap:10px;flex-wrap:wrap;margin-bottom:10px;">' +
             '<div>' +
-              '<span style="font-size:11px;font-weight:700;color:#22d3ee;letter-spacing:0.06em;">⚔️ ĐẤU TRƯỜNG BÀI HỌC MỤC ' + sectionCode + '</span>' +
+              '<span style="font-size:11px;font-weight:700;color:#22d3ee;letter-spacing:0.06em;">ĐẤU TRƯỜNG BÀI HỌC MỤC ' + sectionCode + '</span>' +
               '<h4 style="margin:2px 0 0;font-size:15px;color:#f8fafc;">Quái Canh Cổng: ' + theme.defaultName + ' (Mini)</h4>' +
             '</div>' +
             '<span class="mini-battle-hp" style="font-family:monospace;font-size:12px;color:#fda4af;font-weight:700;">HP Quái: 100% | HP Bạn: 100%</span>' +
@@ -1948,7 +1948,7 @@
           mCtx.fillStyle = '#fde047';
           mCtx.font = 'bold 16px sans-serif';
           mCtx.textAlign = 'center';
-          mCtx.fillText('🏆 ĐÃ CHINH PHỤC MỤC ' + sectionCode + '!', 380, 84);
+          mCtx.fillText('ĐÃ CHINH PHỤC MỤC ' + sectionCode + '!', 380, 84);
         }
       }
 
@@ -1971,7 +1971,7 @@
           drawMiniScene();
           quizBox.innerHTML =
             '<div style="padding:10px 12px;border-radius:10px;background:rgba(16,185,129,0.16);border:1px solid #34d399;color:#a7f3d0;font-weight:600;">' +
-              '🏆 Chiến thắng! Bạn đã tiêu diệt Quái Canh Cổng mục <strong>' + sectionCode + '</strong> (' + score + '/' + questions.length + ' câu đúng) — Thưởng <strong>+35 XP</strong>!' +
+              '[CHIẾN THẮNG] Bạn đã tiêu diệt Quái Canh Cổng mục <strong>' + sectionCode + '</strong> (' + score + '/' + questions.length + ' câu đúng) — Thưởng <strong>+35 XP</strong>!' +
             '</div>';
           if (typeof cfg.onComplete === 'function') {
             try {
@@ -2020,7 +2020,7 @@
                 miniHeroSlash = 0.45;
                 miniHitTimer = 0.45;
                 if (hpLabel) hpLabel.textContent = 'HP Quái: ' + bossHp + '% | HP Bạn: ' + heroHp + '%';
-                if (fb) fb.innerHTML = '<span style="color:#34d399;font-weight:600;">⚔️ Chính xác! Chém bay ' + dmg + '% HP Quái! ' + (q.explanation || '') + '</span>';
+                if (fb) fb.innerHTML = '<span style="color:#34d399;font-weight:600;">[CHÍNH XÁC] Chém bay ' + dmg + '% HP Quái! ' + (q.explanation || '') + '</span>';
                 qIndex++;
                 if (typeof global.setTimeout === 'function') {
                   global.setTimeout(renderQuestion, 750);
@@ -2030,7 +2030,7 @@
               } else {
                 heroHp = Math.max(15, heroHp - 20);
                 if (hpLabel) hpLabel.textContent = 'HP Quái: ' + bossHp + '% | HP Bạn: ' + heroHp + '%';
-                if (fb) fb.innerHTML = '<span style="color:#fb7185;font-weight:600;">💥 Chưa chính xác! Quái phản đòn (-20% HP). Hãy thử chọn lại đáp án đúng!</span>';
+                if (fb) fb.innerHTML = '<span style="color:#fb7185;font-weight:600;">[SAI] Chưa chính xác! Quái phản đòn (-20% HP). Hãy thử chọn lại đáp án đúng!</span>';
               }
             });
           })(btns[b]);

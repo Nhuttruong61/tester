@@ -121,14 +121,14 @@
   ];
 
   const BUG_NAMES_VI = [
-    '🐞 Bug Tràn Bộ Đệm (Buffer Overflow)',
-    '🕷️ Lỗi Con Trỏ Null (NullPointer)',
-    '🦂 Sai Giá Trị Biên (Off-by-One)',
-    '🦠 Rò Rỉ Bộ Nhớ (Memory Leak)',
-    '🪲 Lỗi Phân Vùng Tương Đương',
-    '👾 Xung Đột Luồng (Race Condition)',
-    '🕸️ Vòng Lặp Vô Tận (Infinite Loop)',
-    '💥 Lỗi Tích Hợp API (500 Error)'
+    'Bug Tràn Bộ Đệm (Buffer Overflow)',
+    'Lỗi Con Trỏ Null (NullPointer)',
+    'Sai Giá Trị Biên (Off-by-One)',
+    'Rò Rỉ Bộ Nhớ (Memory Leak)',
+    'Lỗi Phân Vùng Tương Đương',
+    'Xung Đột Luồng (Race Condition)',
+    'Vòng Lặp Vô Tận (Infinite Loop)',
+    'Lỗi Tích Hợp API (500 Error)'
   ];
 
   const world3d = {
@@ -906,7 +906,7 @@
         // Create Floating Vietnamese HTML Label
         const labelEl = this._createFloatingLabel({
           badge: cfg.code,
-          title: `👹 ${cfg.name}`,
+          title: cfg.name,
           subtitle: cfg.subtitle,
           colorHex: cfg.hex,
           onClick: () => this._handleStationClick('chapter', cfg.id, bx, bz, cfg.name)
@@ -981,7 +981,7 @@
 
         const labelEl = this._createFloatingLabel({
           badge: p.code,
-          title: `🌀 ${p.name}`,
+          title: p.name,
           subtitle: p.subtitle,
           colorHex: p.hex,
           onClick: () => this._handleStationClick(p.type, null, p.x, p.z, p.name)
@@ -1196,6 +1196,11 @@
       window.addEventListener('keydown', (e) => {
         const tag = (e.target && e.target.tagName ? e.target.tagName : '').toLowerCase();
         if (tag === 'input' || tag === 'textarea' || tag === 'select') return;
+        if (typeof document !== 'undefined' && document.body &&
+            !document.body.classList.contains('world3d-freeroam') &&
+            !document.body.classList.contains('arena-3d-battle')) {
+          return;
+        }
 
         const code = e.code || '';
         const key = (e.key || '').toLowerCase();
@@ -2064,6 +2069,17 @@
       const THREE = window.THREE;
       if (!THREE || !this.camera) return;
 
+      const is3DActive = typeof document !== 'undefined' && document.body &&
+        (document.body.classList.contains('world3d-freeroam') || document.body.classList.contains('arena-3d-battle'));
+      if (!is3DActive) {
+        if (this.labelContainer) this.labelContainer.style.display = 'none';
+        if (this.promptBanner) this.promptBanner.style.display = 'none';
+        return;
+      }
+      if (this.labelContainer && document.body.classList.contains('world3d-freeroam')) {
+        this.labelContainer.style.display = 'block';
+      }
+
       const w = window.innerWidth || 1280;
       const h = window.innerHeight || 720;
       let nearestPrompt = null;
@@ -2096,7 +2112,7 @@
           nearestPrompt = {
             type: 'chapter',
             id: b.config.id,
-            text: `⚔️ Nhấn [E] hoặc Click để Khiêu Chiến: ${b.config.name} (Chương ${b.config.id})`
+            text: `NHẤN [E] HOẶC CLICK ĐỂ KHIÊU CHIẾN: ${b.config.name} (Chương ${b.config.id})`
           };
         }
       });
@@ -2109,7 +2125,7 @@
           nearestPrompt = {
             type: p.config.type,
             id: null,
-            text: `🌀 Nhấn [E] hoặc Click để Mở: ${p.config.name}`
+            text: `NHẤN [E] HOẶC CLICK ĐỂ MỞ: ${p.config.name}`
           };
         }
       });

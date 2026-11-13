@@ -1,0 +1,3 @@
+
+# Local API keys (prevent GitHub Secret Scanning & OpenRouter key auto-revocation)
+ctfl-game/js/local-keys.js

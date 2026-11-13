@@ -8,12 +8,12 @@
   const STORAGE_KEY = 'ctfl_cyber_arena_v1';
 
   const RANKS = [
-    { minLevel: 1, title: 'Tân Binh Diệt Bug', icon: '🪲' },
-    { minLevel: 3, title: 'Thợ Săn Lỗi Sơ Cấp', icon: '🔍' },
-    { minLevel: 6, title: 'Kiểm Thử Viên Thực Chiến', icon: '🛡️' },
-    { minLevel: 9, title: 'Kỹ Sư Phân Tích K3', icon: '📐' },
-    { minLevel: 12, title: 'Chiến Thần Tự Động Hóa', icon: '⚡' },
-    { minLevel: 15, title: 'Đại Kiện Tướng ISTQB CTFL', icon: '👑' }
+    { minLevel: 1, title: 'Tân Binh Diệt Bug', icon: 'I' },
+    { minLevel: 3, title: 'Thợ Săn Lỗi Sơ Cấp', icon: 'II' },
+    { minLevel: 6, title: 'Kiểm Thử Viên Thực Chiến', icon: 'III' },
+    { minLevel: 9, title: 'Kỹ Sư Phân Tích K3', icon: 'IV' },
+    { minLevel: 12, title: 'Chiến Thần Tự Động Hóa', icon: 'V' },
+    { minLevel: 15, title: 'Đại Kiện Tướng ISTQB CTFL', icon: 'VI' }
   ];
 
   const ACHIEVEMENTS = [
@@ -21,73 +21,73 @@
       id: 'first_blood',
       title: 'Chiến Công Đầu Tiên',
       desc: 'Tiêu diệt con Bug đầu tiên hoặc trả lời đúng câu hỏi ISTQB đầu tiên trong đấu trường.',
-      icon: '🩸'
+      icon: '01'
     },
     {
       id: 'combo_5',
       title: 'Chuỗi Liên Kích 5x',
       desc: 'Đạt chuỗi trả lời đúng 5 câu liên tiếp trong một trận đột kích.',
-      icon: '🔥'
+      icon: '02'
     },
     {
       id: 'combo_10',
       title: 'Tuyệt Kỹ Không Lỗi (Combo 10x)',
       desc: 'Đạt chuỗi trả lời đúng 10 câu liên tiếp không một sai sót.',
-      icon: '⚡'
+      icon: '03'
     },
     {
       id: 'first_boss',
       title: 'Dũng Sĩ Diệt Trùm',
       desc: 'Hạ gục thành công Đại Trùm Chương đầu tiên trong Chiến Dịch.',
-      icon: '⚔️'
+      icon: '04'
     },
     {
       id: 'all_bosses',
       title: 'Giải Phóng Đấu Trường 3D',
       desc: 'Đánh bại toàn bộ 6 Đại Trùm từ Chương 1 đến Chương 6.',
-      icon: '🏆'
+      icon: '05'
     },
     {
       id: 'k3_architect',
       title: 'Kiến Trúc Sư Thiết Kế K3',
       desc: 'Chiến thắng Phòng Lab Thực Chiến K3 (Phân vùng tương đương, Giá trị biên, Bảng quyết định, Chuyển đổi trạng thái, Ước lượng 3 điểm).',
-      icon: '📐'
+      icon: '06'
     },
     {
       id: 'mistake_cleanser',
       title: 'Thanh Trừ Sổ Thù Vặt',
       desc: 'Xóa bỏ thành công ít nhất 1 lỗi sai khỏi Sổ Thù Vặt (trả lời đúng 2 lần liên tiếp).',
-      icon: '🧹'
+      icon: '07'
     },
     {
       id: 'exam_certified',
       title: 'Đạt Chuẩn Quốc Tế ISTQB CTFL',
       desc: 'Vượt qua kỳ thi thử 40 câu chuẩn ISTQB với số điểm từ 26/40 (65%) trở lên.',
-      icon: '🎓'
+      icon: '08'
     },
     {
       id: 'exam_distinction',
       title: 'Thủ Khoa Kiểm Thử (>= 85%)',
       desc: 'Đạt từ 34/40 câu đúng trở lên trong kỳ thi thử quốc tế ISTQB.',
-      icon: '🌟'
+      icon: '09'
     },
     {
       id: 'blitz_demon',
       title: 'Thần Tốc Đập Bug 60 Giây',
       desc: 'Đạt từ 1000 điểm trở lên trong chế độ Đập Bug 60 Giây.',
-      icon: '🚀'
+      icon: '10'
     },
     {
       id: 'flashcard_scholar',
       title: 'Học Giả Thuật Ngữ ISTQB',
       desc: 'Đánh dấu "Đã thuộc lòng" ít nhất 20 thẻ nhớ thuật ngữ ISTQB.',
-      icon: '🧠'
+      icon: '11'
     },
     {
       id: 'bugs_100',
       title: 'Bách Chiến Diệt Trăm Bug',
       desc: 'Tiêu diệt tổng cộng 100 Bug trong thế giới 3D và đấu trường câu hỏi.',
-      icon: '💯'
+      icon: '12'
     }
   ];
 
@@ -322,6 +322,7 @@
       this.renderBlitzIntro();
       this.initFlashcardsView();
       this.renderCodexView();
+      this.renderAIView();
     }
 
     _initWorld3D() {
@@ -353,7 +354,7 @@
         if (this.state.dailyQuest.progress >= this.state.dailyQuest.target && !this.state.dailyQuest.claimed) {
           this.state.dailyQuest.claimed = true;
           this.addXP(150);
-          this._showToast('🎉 Hoàn thành Nhiệm Vụ Hàng Ngày! +150 XP');
+          this._showToast('[HOÀN THÀNH] Nhiệm Vụ Hàng Ngày! +150 XP');
         }
       }
 
@@ -365,7 +366,7 @@
       this.checkAchievements();
       this.saveState();
       this.updateHUD();
-      this._showToast(`🎯 Đã bắn hạ Quái Vật Bug 3D! +${rewardXp} XP`);
+      this._showToast(`[TIÊU DIỆT] Đã bắn hạ Quái Vật Bug 3D! +${rewardXp} XP`);
     }
 
     onPortalInteract(type, chapterId) {
@@ -496,12 +497,12 @@
       document.documentElement.setAttribute('data-theme', theme);
       const btn = safeEl('btn-theme-toggle');
       if (btn) {
-        btn.innerHTML = `<span class="util-icon" aria-hidden="true">${theme === 'light' ? '☀️' : '🌙'}</span><span class="util-label">${theme === 'light' ? 'SÁNG' : 'TỐI'}</span>`;
+        btn.innerHTML = `<span class="util-icon" aria-hidden="true">${theme === 'light' ? 'SÁNG' : 'TỐI'}</span><span class="util-label">${theme === 'light' ? 'SÁNG' : 'TỐI'}</span>`;
       }
       const soundBtn = safeEl('btn-sound-toggle');
       if (soundBtn && window.CTFLSound) {
         const on = window.CTFLSound.enabled;
-        soundBtn.innerHTML = `<span class="util-icon" aria-hidden="true">${on ? '🔊' : '🔇'}</span><span class="util-label">${on ? 'BẬT TIẾNG' : 'TẮT TIẾNG'}</span>`;
+        soundBtn.innerHTML = `<span class="util-icon" aria-hidden="true">${on ? 'BẬT' : 'TẮT'}</span><span class="util-label">${on ? 'BẬT TIẾNG' : 'TẮT TIẾNG'}</span>`;
       }
     }
 
@@ -529,7 +530,7 @@
       if (newLevel > oldLevel) {
         if (window.CTFLSound) window.CTFLSound.levelUp();
         if (window.CTFLParticles) window.CTFLParticles.bossExplosion();
-        this._showToast(`🎉 Thăng Cấp ${newLevel}: ${this.getRankForLevel(newLevel).title}!`);
+        this._showToast(`[THĂNG CẤP] Cấp ${newLevel}: ${this.getRankForLevel(newLevel).title}!`);
       }
       this.saveState();
       this.updateHUD();
@@ -540,7 +541,7 @@
         this.state.unlockedAchievements.push(id);
         const ach = ACHIEVEMENTS.find((a) => a.id === id);
         if (ach) {
-          this._showToast(`🏆 Mở khóa Chiến Công: ${ach.title}!`);
+          this._showToast(`[CHIẾN CÔNG] Mở khóa: ${ach.title}!`);
         }
         this.saveState();
       }
@@ -637,8 +638,8 @@
       if (!btnToggle || typeof document === 'undefined' || !document.body) return;
       const isRoam = document.body.classList.contains('world3d-freeroam');
       btnToggle.innerHTML = isRoam
-        ? '📋 Hiện Bảng Điều Khiển 2D'
-        : '👁️ Ẩn/Hiện Bảng Để Đi Dạo 3D';
+        ? 'Hiện Bảng Điều Khiển 2D'
+        : 'Ẩn/Hiện Bảng Để Đi Dạo 3D';
     }
 
     switchView(viewName) {
@@ -741,6 +742,39 @@
         });
       }
 
+      if (typeof document !== 'undefined') {
+        document.querySelectorAll('[data-action="close-workspace-panel"]').forEach((btn) => {
+          btn.addEventListener('click', () => {
+            if (window.CTFLSound) window.CTFLSound.click();
+            this.toggleWorld3DFreeroam(true);
+            this._showToast('Đã đóng bảng 2D để ra Thế Giới 3D. Nhấn [ESC] hoặc nút góc dưới để mở lại.');
+          });
+        });
+
+        document.querySelectorAll('[data-action="back-to-campaign"]').forEach((btn) => {
+          btn.addEventListener('click', () => {
+            if (window.CTFLSound) window.CTFLSound.click();
+            this.switchView('campaign');
+          });
+        });
+
+        document.querySelectorAll('[data-action="close-result-modal"]').forEach((btn) => {
+          btn.addEventListener('click', () => {
+            if (window.CTFLSound) window.CTFLSound.click();
+            this.closeResultModal();
+          });
+        });
+
+        const modalResult = safeEl('modal-result');
+        if (modalResult) {
+          modalResult.addEventListener('click', (e) => {
+            if (e.target === modalResult) {
+              this.closeResultModal();
+            }
+          });
+        }
+      }
+
       const btn3dShoot = safeEl('btn-3d-shoot');
       if (btn3dShoot) {
         btn3dShoot.addEventListener('click', () => {
@@ -791,7 +825,7 @@
         btnSound.addEventListener('click', () => {
           if (window.CTFLSound) {
             const on = window.CTFLSound.toggle();
-            btnSound.innerHTML = `<span class="util-icon" aria-hidden="true">${on ? '🔊' : '🔇'}</span><span class="util-label">${on ? 'BẬT TIẾNG' : 'TẮT TIẾNG'}</span>`;
+            btnSound.innerHTML = `<span class="util-icon" aria-hidden="true">${on ? 'BẬT' : 'TẮT'}</span><span class="util-label">${on ? 'BẬT TIẾNG' : 'TẮT TIẾNG'}</span>`;
           }
         });
       }
@@ -1056,6 +1090,30 @@
       const tag = (e.target.tagName || '').toLowerCase();
       if (tag === 'input' || tag === 'textarea' || tag === 'select') return;
 
+      if (e.key === 'Escape') {
+        e.preventDefault();
+        const modal = safeEl('modal-result');
+        if (modal && !modal.classList.contains('hidden')) {
+          this.closeResultModal();
+          return;
+        }
+        const sim = safeEl('study-k3-simulator');
+        const peek = safeEl('q-peek-box');
+        let closedSub = false;
+        if (sim && !sim.classList.contains('hidden')) {
+          sim.classList.add('hidden');
+          closedSub = true;
+        }
+        if (peek && !peek.classList.contains('hidden')) {
+          peek.classList.add('hidden');
+          closedSub = true;
+        }
+        if (closedSub) return;
+
+        this.toggleWorld3DFreeroam();
+        return;
+      }
+
       const key = e.key.toUpperCase();
 
       if (this.currentView === 'arena' && this.arena) {
@@ -1151,21 +1209,21 @@
           try {
             let newQs = [];
             if (hasKeys || cfg.provider === 'ollama') {
-              this._showToast(`🤖 AI đang soạn bài tập mới từ Chương ${chId}...`);
+              this._showToast(`[AI] Đang soạn bài tập mới từ Chương ${chId}...`);
               const aiRes = await ai.generateQuestionsFromSyllabus({ chapterId: chId, count: 5, kLevel: 'mixed' });
               newQs = Array.isArray(aiRes) ? aiRes : (aiRes && Array.isArray(aiRes.questions) ? aiRes.questions : []);
               this._loadDataPools();
             } else {
               newQs = ai.generateDynamicK3Questions(5, chId);
-              this._showToast(`🎲 Đã tạo 5 bài tập biến thể K3 mới cho Chương ${chId}!`);
+              this._showToast(`[K3] Đã tạo 5 bài tập biến thể K3 mới cho Chương ${chId}!`);
             }
             if (newQs && newQs.length > 0) {
-              this.startArenaSession('chapter', chId, newQs, `🤖 Luyện Tập AI Chương ${chId} (${newQs.length} câu mới)`);
+              this.startArenaSession('chapter', chId, newQs, `[AI] Luyện Tập Chương ${chId} (${newQs.length} câu mới)`);
             }
           } catch (err) {
             const fallbackQs = ai.generateDynamicK3Questions(5, chId);
-            this._showToast(`⚠️ AI đang bận (${err.message || 'lỗi mạng'}). Đã tạo 5 câu biến thể K3 offline!`);
-            this.startArenaSession('chapter', chId, fallbackQs, `🎲 Luyện Tập Biến Thể Chương ${chId}`);
+            this._showToast(`[CẢNH BÁO] AI đang bận (${err.message || 'lỗi mạng'}). Đã tạo 5 câu biến thể K3 offline!`);
+            this.startArenaSession('chapter', chId, fallbackQs, `[K3] Luyện Tập Biến Thể Chương ${chId}`);
           }
         });
       }
@@ -1188,12 +1246,12 @@
 
       simEl.innerHTML = `
         <div class="k3-sim-box">
-          <h3 class="card-section-title">🧮 PHÒNG THÍ NGHIỆM TƯƠNG TÁC K3 (BVA, EP &amp; ƯỚC LƯỢNG 3 ĐIỂM PERT)</h3>
+          <h3 class="card-section-title">PHÒNG THÍ NGHIỆM TƯƠNG TÁC K3 (BVA, EP &amp; ƯỚC LƯỢNG 3 ĐIỂM PERT)</h3>
           <p class="section-hint">Thay đổi trực tiếp khoảng giá trị [Min, Max] hoặc bộ số (O, M, P) để kiểm tra kết quả tức thì chuẩn ISTQB CTFL v4.0.1.</p>
 
           <div style="display:grid; grid-template-columns:repeat(auto-fit, minmax(290px, 1fr)); gap:1rem; margin-top:0.85rem;">
             <div style="background:rgba(15,23,42,0.8); border:1px solid rgba(34,211,238,0.3); border-radius:10px; padding:1rem;">
-              <h4 style="color:var(--cyan-bright); margin-bottom:0.6rem;">📐 1. Phân Tích Giá Trị Biên (BVA 2 &amp; 3 Giá Trị)</h4>
+              <h4 style="color:var(--cyan-bright); margin-bottom:0.6rem;">1. Phân Tích Giá Trị Biên (BVA 2 &amp; 3 Giá Trị)</h4>
               <div style="display:flex; gap:0.65rem; align-items:center; margin-bottom:0.75rem;">
                 <label style="font-size:0.84rem;">Min: <input id="sim-bva-min" type="number" class="tactical-input" style="width:90px;" value="${minVal}" /></label>
                 <label style="font-size:0.84rem;">Max: <input id="sim-bva-max" type="number" class="tactical-input" style="width:90px;" value="${maxVal}" /></label>
@@ -1212,7 +1270,7 @@
             </div>
 
             <div style="background:rgba(15,23,42,0.8); border:1px solid rgba(245,158,11,0.3); border-radius:10px; padding:1rem;">
-              <h4 style="color:var(--amber-bright); margin-bottom:0.6rem;">⏱️ 2. Ước Lượng 3 Điểm (Three-Point / PERT)</h4>
+              <h4 style="color:var(--amber-bright); margin-bottom:0.6rem;">2. Ước Lượng 3 Điểm (Three-Point / PERT)</h4>
               <div style="display:flex; gap:0.5rem; flex-wrap:wrap; margin-bottom:0.75rem;">
                 <label style="font-size:0.84rem;">Lạc quan (O): <input id="sim-pert-o" type="number" class="tactical-input" style="width:76px;" value="${pertO}" /></label>
                 <label style="font-size:0.84rem;">Khả dĩ (M): <input id="sim-pert-m" type="number" class="tactical-input" style="width:76px;" value="${pertM}" /></label>
@@ -1267,7 +1325,7 @@
           const doneCount = secList.filter((code) => this.state.studiedSections && this.state.studiedSections[`${c.id}_${code}`]).length;
           return `
             <button type="button" class="filter-pill ${c.id === ch.id ? 'active' : ''}" data-study-tab="${c.id}">
-              📚 Chương ${c.id} (${doneCount}/${secList.length} mục)
+              CHƯƠNG ${c.id} (${doneCount}/${secList.length} mục)
             </button>
           `;
         }).join('');
@@ -1294,10 +1352,10 @@
       const overviewEl = safeEl('study-chapter-overview');
       if (overviewEl) {
         const keywordsHtml = fullChapter && fullChapter.keywords
-          ? `<div style="margin-top:0.45rem; font-size:0.82rem; color:var(--cyan-bright);">🔑 <strong>Từ khóa chuẩn ISTQB:</strong> ${escapeHtml(fullChapter.keywords)}</div>`
+          ? `<div style="margin-top:0.45rem; font-size:0.82rem; color:var(--cyan-bright);"><strong>Từ khóa chuẩn ISTQB:</strong> ${escapeHtml(fullChapter.keywords)}</div>`
           : '';
         const loHtml = fullChapter && fullChapter.learningObjectivesHtml
-          ? `<details style="margin-top:0.55rem; font-size:0.84rem; color:var(--text-secondary);"><summary style="cursor:pointer; color:var(--amber-bright); font-weight:600;">🎯 Xem Mục Tiêu Học Tập (Learning Objectives) &amp; Thời Lượng (${escapeHtml(fullChapter.durationText || '')})</summary><div class="syllabus-lo-box" style="margin-top:0.45rem;">${fullChapter.learningObjectivesHtml}</div></details>`
+          ? `<details style="margin-top:0.55rem; font-size:0.84rem; color:var(--text-secondary);"><summary style="cursor:pointer; color:var(--amber-bright); font-weight:600;">Xem Mục Tiêu Học Tập (Learning Objectives) &amp; Thời Lượng (${escapeHtml(fullChapter.durationText || '')})</summary><div class="syllabus-lo-box" style="margin-top:0.45rem;">${fullChapter.learningObjectivesHtml}</div></details>`
           : '';
 
         overviewEl.innerHTML = `
@@ -1306,7 +1364,7 @@
               <div style="display:flex; align-items:center; gap:0.5rem; flex-wrap:wrap; margin-bottom:0.35rem;">
                 <span class="meta-badge badge-cyan">${escapeHtml(ch.code)} • Trọng số thi: ${ch.examWeight} câu</span>
                 <span class="meta-badge badge-emerald">Tiến độ học: ${studiedCount}/${totalSectionCount} mục (${pct}%)</span>
-                ${fullChapter ? '<span class="meta-badge badge-amber">📘 Giáo Trình HTML Full Tiếng Việt v4.0.1</span>' : ''}
+                ${fullChapter ? '<span class="meta-badge badge-amber">Giáo Trình HTML Full Tiếng Việt v4.0.1</span>' : ''}
               </div>
               <h3 style="font-size:1.15rem; font-weight:700; color:var(--text-primary); margin-bottom:0.25rem;">
                 ${escapeHtml(fullChapter ? fullChapter.title : ch.title)}
@@ -1319,7 +1377,7 @@
             </div>
             <div style="display:flex; gap:0.65rem; flex-wrap:wrap;">
               <button type="button" class="btn btn-primary" data-study-start-raid="${ch.id}">
-                ⚔️ Bước 2: Đánh Trùm Chương ${ch.id} (${escapeHtml(ch.bossName)})
+                BƯỚC 2: ĐÁNH TRÙM CHƯƠNG ${ch.id} (${escapeHtml(ch.bossName)})
               </button>
             </div>
           </div>
@@ -1390,7 +1448,7 @@
 
           const cheatSummaryBlock = (sec.html && sec.points && sec.points.length > 0) ? `
             <details style="margin-top:0.65rem; background:rgba(15,23,42,0.55); border:1px solid var(--border-subtle); border-radius:8px; padding:0.6rem 0.9rem;">
-              <summary style="cursor:pointer; font-size:0.84rem; font-weight:700; color:var(--cyan-bright);">⚡ Tóm Tắt Trọng Tâm Thi Cử Mục ${escapeHtml(sec.code)}</summary>
+              <summary style="cursor:pointer; font-size:0.84rem; font-weight:700; color:var(--cyan-bright);">Tóm Tắt Trọng Tâm Thi Cử Mục ${escapeHtml(sec.code)}</summary>
               <ul style="padding-left:1.2rem; margin-top:0.45rem; display:flex; flex-direction:column; gap:0.35rem; font-size:0.88rem; color:var(--text-primary);">
                 ${sec.points.map((pt) => `<li>${escapeHtml(pt)}</li>`).join('')}
               </ul>
@@ -1399,7 +1457,7 @@
 
           const hookHtml = matchFc ? `
             <div style="margin-top:0.65rem; padding:0.65rem 0.9rem; background:rgba(245,158,11,0.08); border:1px dashed rgba(245,158,11,0.35); border-radius:8px; font-size:0.84rem;">
-              <strong style="color:var(--amber-bright);">🧠 Thuật ngữ &amp; Khẩu quyết nhớ nhanh (${escapeHtml(matchFc.term)}):</strong>
+              <strong style="color:var(--amber-bright);">Thuật ngữ &amp; Khẩu quyết nhớ nhanh (${escapeHtml(matchFc.term)}):</strong>
               <div style="color:var(--text-secondary); margin-top:0.2rem;">${escapeHtml(matchFc.memoryHook)}</div>
             </div>
           ` : '';
@@ -1407,19 +1465,19 @@
           const exampleHtml = matchQ ? `
             <details style="margin-top:0.75rem; padding:0.75rem 1rem; background:rgba(6,182,212,0.07); border-left:3px solid var(--cyan-bright); border-radius:8px;">
               <summary style="cursor:pointer; font-size:0.82rem; font-weight:700; color:var(--cyan-bright); text-transform:uppercase;">
-                📝 XEM VÍ DỤ BÀI TẬP MẪU &amp; LỜI GIẢI (${escapeHtml(matchQ.kLevel)})
+                XEM VÍ DỤ BÀI TẬP MẪU &amp; LỜI GIẢI (${escapeHtml(matchQ.kLevel)})
               </summary>
               <p style="font-size:0.9rem; color:var(--text-primary); font-weight:600; margin:0.5rem 0;">
                 Tình huống: ${escapeHtml(matchQ.scenario)}
               </p>
               <div style="font-size:0.85rem; color:var(--emerald-bright); font-weight:700; margin-bottom:0.35rem;">
-                ✓ Đáp án đúng: ${escapeHtml(matchQ.options[matchQ.correct])}
+                Đáp án đúng: ${escapeHtml(matchQ.options[matchQ.correct])}
               </div>
               <div style="font-size:0.84rem; color:var(--text-secondary); margin-bottom:0.3rem;">
                 <strong>Giải thích từng bước:</strong> ${escapeHtml(matchQ.explanation)}
               </div>
               <div style="font-size:0.82rem; color:var(--amber-bright);">
-                💡 <strong>Mẹo nhớ nhanh:</strong> ${escapeHtml(matchQ.mnemonic)}
+                <strong>Mẹo nhớ nhanh:</strong> ${escapeHtml(matchQ.mnemonic)}
               </div>
             </details>
           ` : '';
@@ -1429,22 +1487,22 @@
               <div class="q-meta-header" style="margin-bottom:0.75rem; padding-bottom:0.5rem;">
                 <div class="q-badges-left">
                   <span class="meta-badge badge-cyan">GIÁO TRÌNH MỤC ${escapeHtml(sec.code)}</span>
-                  ${isStudied ? '<span class="meta-badge badge-emerald">✓ ĐÃ CHINH PHỤC MỤC HỌC</span>' : '<span class="meta-badge badge-amber">CHƯA CHINH PHỤC</span>'}
+                  ${isStudied ? '<span class="meta-badge badge-emerald">ĐÃ CHINH PHỤC MỤC HỌC</span>' : '<span class="meta-badge badge-amber">CHƯA CHINH PHỤC</span>'}
                 </div>
                 <div style="display:flex; gap:0.45rem; flex-wrap:wrap;">
                   <button type="button" class="btn btn-sm btn-secondary" data-study-ai-sec="${escapeHtml(sec.code)}">
-                    🤖 AI Tạo Câu Hỏi Mới Cho Mục Này
+                    [AI] Tạo Câu Hỏi Mới Cho Mục Này
                   </button>
                   <button type="button" class="btn btn-sm btn-secondary" data-study-tutor-sec="${escapeHtml(sec.code)}">
-                    💬 Hỏi Gia Sư AI Về Mục Này
+                    Hỏi Gia Sư AI Về Mục Này
                   </button>
                   <button type="button" class="btn ${isStudied ? 'btn-secondary' : 'btn-success'} btn-sm" data-mark-studied="${escapeHtml(secKey)}">
-                    ${isStudied ? '✓ Đã Hiểu Mục Này' : '✅ Đánh Dấu Đã Hiểu (+25 XP)'}
+                    ${isStudied ? 'Đã Hiểu Mục Này' : 'Đánh Dấu Đã Hiểu (+25 XP)'}
                   </button>
                 </div>
               </div>
               <h4 style="font-size:1.12rem; font-weight:700; margin-bottom:0.65rem; color:var(--cyan-bright);">
-                📖 ${escapeHtml(sec.code)} — ${escapeHtml(sec.title)}
+                ${escapeHtml(sec.code)} — ${escapeHtml(sec.title)}
               </h4>
               ${fullHtmlBlock}
               ${cheatSummaryBlock}
@@ -1476,7 +1534,7 @@
                   this.addXP(35);
                   this.saveState();
                   this.updateHUD();
-                  this._showToast(`⚔️ Đã tiêu diệt Quái Canh Cổng Mục ${sec.code}! +35 XP`);
+                  this._showToast(`[CHIẾN THẮNG] Đã tiêu diệt Quái Canh Cổng Mục ${sec.code}! +35 XP`);
                 }
               }
             });
@@ -1494,7 +1552,7 @@
             if (!ai || !outBox) return;
 
             outBox.classList.remove('hidden');
-            outBox.innerHTML = `<span style="color:var(--cyan-bright);">⏳ AI OpenRouter đang đọc Mục ${escapeHtml(secCode)} và soạn câu hỏi mới...</span>`;
+            outBox.innerHTML = `<span style="color:var(--cyan-bright);">[ĐANG TẢI] AI OpenRouter đang đọc Mục ${escapeHtml(secCode)} và soạn câu hỏi mới...</span>`;
             try {
               const cfg = ai.getConfig ? ai.getConfig() : {};
               let newQs = [];
@@ -1512,7 +1570,7 @@
                 return;
               }
               outBox.innerHTML = `
-                <div style="font-weight:700; color:var(--emerald-bright); margin-bottom:0.4rem;">🤖 Câu Hỏi Mới Do AI Tạo Cho Mục ${escapeHtml(secCode)} (${escapeHtml(q0.kLevel)}):</div>
+                <div style="font-weight:700; color:var(--emerald-bright); margin-bottom:0.4rem;">[AI] Câu Hỏi Mới Cho Mục ${escapeHtml(secCode)} (${escapeHtml(q0.kLevel)}):</div>
                 <p style="margin-bottom:0.5rem; color:var(--text-primary);">${escapeHtml(q0.scenario)}</p>
                 <div style="display:flex; flex-direction:column; gap:0.35rem;">
                   ${q0.options.map((opt, oIdx) => `
@@ -1534,7 +1592,7 @@
                   const expEl = outBox.querySelector('.study-ai-exp');
                   if (expEl) {
                     expEl.classList.remove('hidden');
-                    expEl.innerHTML = `${isOk ? '✅ Chính xác! +20 XP' : '❌ Chưa đúng!'} — ${escapeHtml(q0.explanation || '')}`;
+                    expEl.innerHTML = `${isOk ? '[CHÍNH XÁC] +20 XP' : '[SAI] Chưa đúng!'} — ${escapeHtml(q0.explanation || '')}`;
                   }
                   if (isOk) {
                     if (window.CTFLSound) window.CTFLSound.correct(1);
@@ -1545,7 +1603,7 @@
                 });
               });
             } catch (err) {
-              outBox.innerHTML = `<span style="color:var(--rose-bright);">⚠️ ${escapeHtml(err.message || 'Lỗi kết nối AI. Hãy cấu hình API Key trong tab AI Soạn Đề Mới.')}</span>`;
+              outBox.innerHTML = `<span style="color:var(--rose-bright);">[LỖI] ${escapeHtml(err.message || 'Lỗi kết nối AI. Hãy cấu hình API Key trong tab AI Soạn Đề Mới.')}</span>`;
             }
           });
         });
@@ -1561,7 +1619,7 @@
             if (!ai || !outBox) return;
 
             outBox.classList.remove('hidden');
-            outBox.innerHTML = `<span style="color:var(--cyan-bright);">💬 Gia Sư AI đang phân tích Mục ${escapeHtml(secCode)}...</span>`;
+            outBox.innerHTML = `<span style="color:var(--cyan-bright);">[AI] Gia Sư AI đang phân tích Mục ${escapeHtml(secCode)}...</span>`;
             try {
               const reply = await ai.askSyllabusTutor({
                 chapterId: ch.id,
@@ -1572,11 +1630,11 @@
                 ? (reply.answer || reply.message || '')
                 : String(reply || '');
               outBox.innerHTML = `
-                <div style="font-weight:700; color:var(--cyan-bright); margin-bottom:0.35rem;">💬 Gia Sư AI — Giải Thích Mục ${escapeHtml(secCode)}:</div>
+                <div style="font-weight:700; color:var(--cyan-bright); margin-bottom:0.35rem;">[AI] Gia Sư — Giải Thích Mục ${escapeHtml(secCode)}:</div>
                 <div style="white-space:pre-wrap; color:var(--text-primary); line-height:1.55;">${escapeHtml(answerText)}</div>
               `;
             } catch (err) {
-              outBox.innerHTML = `<span style="color:var(--rose-bright);">⚠️ ${escapeHtml(err.message || 'Chưa cấu hình API Key AI. Vào tab AI Soạn Đề Mới để thêm key OpenRouter.')}</span>`;
+              outBox.innerHTML = `<span style="color:var(--rose-bright);">[LỖI] ${escapeHtml(err.message || 'Chưa cấu hình API Key AI. Vào tab AI Soạn Đề Mới để thêm key OpenRouter.')}</span>`;
             }
           });
         });
@@ -1590,7 +1648,7 @@
               this.state.studiedSections[key] = true;
               if (window.CTFLSound) window.CTFLSound.correct(1);
               this.addXP(25);
-              this._showToast('📚 Đã hoàn thành bài học! +25 XP');
+              this._showToast('[HOÀN THÀNH] Đã hoàn thành bài học! +25 XP');
             } else {
               if (window.CTFLSound) window.CTFLSound.click();
             }
@@ -1619,7 +1677,7 @@
         if (titleEl && dq.title) titleEl.textContent = dq.title;
         if (descEl && dq.desc) descEl.textContent = dq.desc;
         if (statusEl) {
-          statusEl.textContent = dq.claimed ? '✅ Đã hoàn thành nhiệm vụ hôm nay!' : 'Tiến độ nhiệm vụ hàng ngày';
+          statusEl.textContent = dq.claimed ? '[HOÀN THÀNH] Đã xong nhiệm vụ hôm nay!' : 'Tiến độ nhiệm vụ hàng ngày';
         }
         if (progEl) {
           progEl.textContent = `${dq.progress} / ${dq.target}`;
@@ -1656,11 +1714,11 @@
                     <span class="meta-badge badge-cyan">${escapeHtml(ch.code)} • ${ch.examWeight} Câu thi</span>
                     <h3 class="chapter-title">${escapeHtml(ch.title)}</h3>
                   </div>
-                  <div class="chapter-boss-icon" title="${escapeHtml(ch.bossName)}">${ch.bossIcon || '👾'}</div>
+                  <div class="chapter-boss-icon" title="${escapeHtml(ch.bossName)}">${ch.bossIcon || 'B-00'}</div>
                 </div>
                 <div class="boss-name-tag" style="margin: 0.5rem 0;">
-                  ⚔️ Đại Trùm: ${escapeHtml(ch.bossName)} — <em>${escapeHtml(ch.bossTitle)}</em>
-                  ${defeated ? '<span class="badge-pill badge-emerald" style="margin-left:0.35rem;">✓ ĐÃ HẠ GỤC</span>' : ''}
+                  Đại Trùm: ${escapeHtml(ch.bossName)} — <em>${escapeHtml(ch.bossTitle)}</em>
+                  ${defeated ? '<span class="badge-pill badge-emerald" style="margin-left:0.35rem;">ĐÃ HẠ GỤC</span>' : ''}
                 </div>
                 <p class="chapter-summary">${escapeHtml(ch.summary)}</p>
               </div>
@@ -1674,10 +1732,10 @@
                 </div>
                 <div class="chapter-actions" style="display:flex; flex-wrap:wrap; gap:0.5rem;">
                   <button type="button" class="btn btn-secondary btn-sm" data-study-chapter="${ch.id}">
-                    📚 Bước 1: Học Lý Thuyết &amp; Ví Dụ Mẫu
+                    BƯỚC 1: HỌC LÝ THUYẾT &amp; VÍ DỤ MẪU
                   </button>
                   <button type="button" class="btn btn-primary btn-sm" data-raid-chapter="${ch.id}">
-                    ⚔️ Bước 2: Đánh Trùm 3D
+                    BƯỚC 2: ĐÁNH TRÙM 3D
                   </button>
                 </div>
               </div>
@@ -1726,7 +1784,7 @@
       let pool = [];
       let title = '';
       let boss = {
-        icon: '👾',
+        icon: 'B-00',
         name: 'Đại Ma Vương Lỗi Hệ Thống',
         title: 'Trùm Khiếm Khuyết Phần Mềm'
       };
@@ -1734,10 +1792,10 @@
       if (Array.isArray(customPool) && customPool.length > 0) {
         pool = customPool.slice();
         const ch = chapterId ? this.chapters.find((c) => c.id === Number(chapterId)) : null;
-        title = customTitle || (ch ? `🤖 Đột Kích AI Chương ${ch.id}: ${ch.title}` : '🤖 Đột Kích Đề Mới AI OpenRouter');
+        title = customTitle || (ch ? `[AI] Đột Kích Chương ${ch.id}: ${ch.title}` : '[AI] Đột Kích Đề Mới OpenRouter');
         if (ch) {
           boss = {
-            icon: ch.bossIcon || '👾',
+            icon: ch.bossIcon || 'B-00',
             name: ch.bossName,
             title: ch.bossTitle
           };
@@ -1748,7 +1806,7 @@
         title = `Chiến Dịch Chương ${ch ? ch.id : ''}: ${ch ? ch.title : 'Đột Kích Đại Trùm'}`;
         if (ch) {
           boss = {
-            icon: ch.bossIcon || '👾',
+            icon: ch.bossIcon || 'B-00',
             name: ch.bossName,
             title: ch.bossTitle
           };
@@ -1760,9 +1818,9 @@
         const baseK3 = shuffleArray(this.questions.filter((q) => q.kLevel === 'K3')).slice(0, 6);
         pool = shuffleArray(baseK3.concat(dynamicK3)).slice(0, 10);
         if (pool.length === 0) pool = shuffleArray(this.questions).slice(0, 10);
-        title = '🧪 Phòng Lab Thực Chiến K3 (Phân Vùng, Giá Trị Biên, Bảng Quyết Định, 3 Điểm)';
+        title = '[K3] Phòng Lab Thực Chiến (Phân Vùng, Giá Trị Biên, Bảng Quyết Định, 3 Điểm)';
         boss = {
-          icon: '🐉',
+          icon: 'K3',
           name: 'Rồng 3 Đầu Giá Trị Biên K3',
           title: 'Đại Trùm Bài Toán Thiết Kế Kiểm Thử & Ước Lượng K3'
         };
@@ -1771,20 +1829,20 @@
         pool = shuffleArray(this.questions.filter((q) => mistakeSet.has(q.id)));
         if (pool.length === 0) {
           pool = shuffleArray(this.questions.filter((q) => q.difficulty === 'hard' || q.kLevel === 'K3')).slice(0, 10);
-          title = '💀 Sổ Thù Vặt (Đang trống — Luyện Câu Hỏi Khó & Bẫy)';
+          title = 'Sổ Thù Vặt (Đang trống — Luyện Câu Hỏi Khó & Bẫy)';
         } else {
-          title = `💀 Đột Kích Sổ Thù Vặt (${pool.length} lỗi cần phục thù)`;
+          title = `Đột Kích Sổ Thù Vặt (${pool.length} lỗi cần phục thù)`;
         }
         boss = {
-          icon: '💀',
+          icon: 'REG',
           name: 'Bóng Ma Lỗi Hồi Quy',
           title: 'Bóng Ma Lỗi Cũ Tái Phát (Trả lời đúng 2 lần để xóa sổ)'
         };
       } else {
         pool = shuffleArray(this.questions).slice(0, 12);
-        title = '🚀 Tuần Tra Tổng Hợp (Tất Cả 6 Chương ISTQB)';
+        title = 'Tuần Tra Tổng Hợp (Tất Cả 6 Chương ISTQB)';
         boss = {
-          icon: '🤖',
+          icon: 'CMD',
           name: 'Tổng Tư Lệnh Đấu Trường 3D',
           title: 'Hộ Vệ Tối Cao Giáo Trình ISTQB CTFL v4.0.1'
         };
@@ -1996,7 +2054,7 @@
 
       const elCombo = safeEl('player-combo-badge');
       if (elCombo) {
-        elCombo.textContent = a.combo > 1 ? `🔥 LIÊN KÍCH x${a.combo}` : 'LIÊN KÍCH x1';
+        elCombo.textContent = a.combo > 1 ? `LIÊN KÍCH x${a.combo}` : 'LIÊN KÍCH x1';
       }
 
       const elBhpBar = safeEl('boss-hp-bar');
@@ -2085,10 +2143,10 @@
         if (window.CTFLSound) window.CTFLSound.powerup();
         a.shieldGuardActive = true;
         this._updateArenaCombatHUD();
-        this._showToast('🛡️ Khiên Năng Lượng đã bật! Giảm 75% sát thương nếu trả lời sai câu này.');
+        this._showToast('[KHIÊN] Khiên Năng Lượng đã bật! Giảm 75% sát thương nếu trả lời sai câu này.');
       } else if (action === 'ultimate') {
         if ((a.fury || 0) < 100 && a.ultUsed) {
-          this._showToast('⚡ Cần tích đủ 100% Nộ để tung thêm Tuyệt Kỹ!');
+          this._showToast('Cần tích đủ 100% Nộ để tung thêm Tuyệt Kỹ!');
           return;
         }
         if (window.CTFLSound) window.CTFLSound.criticalHit();
@@ -2120,7 +2178,7 @@
           }
         }
         this._updateArenaCombatHUD();
-        this._showToast('⚡ Tuyệt Kỹ Orbital Laser! Trùm mất 15 HP & loại bỏ 1 phương án sai!');
+        this._showToast('[TUYỆT KỸ] Orbital Laser! Trùm mất 15 HP & loại bỏ 1 phương án sai!');
       }
     }
 
@@ -2137,20 +2195,20 @@
         const hasKeys = Array.isArray(cfg.apiKeys) && cfg.apiKeys.length > 0;
         let newQs = [];
         if (hasKeys || cfg.provider === 'ollama') {
-          this._showToast(`🤖 AI đang soạn bộ đề mới cho Trùm Chương ${a.chapterId}...`);
+          this._showToast(`[AI] Đang soạn bộ đề mới cho Trùm Chương ${a.chapterId}...`);
           const aiRes = await ai.generateQuestionsFromSyllabus({ chapterId: a.chapterId, count: 6, kLevel: 'mixed' });
           newQs = Array.isArray(aiRes) ? aiRes : (aiRes && Array.isArray(aiRes.questions) ? aiRes.questions : []);
           this._loadDataPools();
         } else {
           newQs = ai.generateDynamicK3Questions(6, a.chapterId);
-          this._showToast(`🎲 Chưa có API Key — Đã sinh 6 câu biến thể K3 số liệu mới cho Trùm!`);
+          this._showToast(`[K3] Chưa có API Key — Đã sinh 6 câu biến thể K3 số liệu mới cho Trùm!`);
         }
         if (Array.isArray(newQs) && newQs.length > 0) {
           a.questions = newQs.map(_permuteQuestionOptions);
           a.index = 0;
           a.answered = false;
           this.renderArenaState();
-          this._showToast(`✨ Đã nạp ${a.questions.length} câu hỏi mới tinh chống học thuộc lòng!`);
+          this._showToast(`[HOÀN THÀNH] Đã nạp ${a.questions.length} câu hỏi mới tinh chống học thuộc lòng!`);
         }
       } catch (err) {
         const fallbackQs = ai.generateDynamicK3Questions(6, a.chapterId);
@@ -2158,7 +2216,7 @@
         a.index = 0;
         a.answered = false;
         this.renderArenaState();
-        this._showToast(`⚠️ AI bận (${err.message || 'lỗi mạng'}). Đã nạp 6 câu biến thể K3 mới!`);
+        this._showToast(`[CẢNH BÁO] AI bận (${err.message || 'lỗi mạng'}). Đã nạp 6 câu biến thể K3 mới!`);
       } finally {
         if (btn) btn.disabled = false;
       }
@@ -2207,7 +2265,7 @@
         a.timeFrozen = true;
         a.freezeBonusActive = true;
         const elTimer = safeEl('arena-timer');
-        if (elTimer) elTimer.textContent = '❄️ ĐÓNG BĂNG';
+        if (elTimer) elTimer.textContent = 'ĐÓNG BĂNG';
       } else if (type === 'peek') {
         const elPeek = safeEl('q-peek-box');
         if (elPeek) {
@@ -2222,7 +2280,7 @@
             snippet = `
               <div style="margin-top:0.5rem;">
                 <div style="font-weight:700; color:var(--cyan-bright); margin-bottom:0.25rem;">
-                  📖 Bài học Mục ${escapeHtml(matchSec.section)} — ${escapeHtml(matchSec.title)}:
+                  Bài học Mục ${escapeHtml(matchSec.section)} — ${escapeHtml(matchSec.title)}:
                 </div>
                 <ul style="padding-left:1.15rem; margin:0; display:flex; flex-direction:column; gap:0.25rem;">
                   ${(matchSec.points || []).map((pt) => `<li>${escapeHtml(pt)}</li>`).join('')}
@@ -2231,8 +2289,8 @@
             `;
           }
           elPeek.innerHTML = `
-            <div><strong>📚 KIẾN THỨC LÝ THUYẾT &amp; GỢI Ý GIẢI NHANH (MIỄN PHÍ):</strong></div>
-            <div style="margin-top:0.3rem; color:var(--amber-bright);">🧠 <strong>Mẹo nhớ nhanh:</strong> ${escapeHtml(q.mnemonic || 'Đọc kỹ từ khóa phủ định hoặc điều kiện biên trong câu hỏi.')}</div>
+            <div><strong>KIẾN THỨC LÝ THUYẾT &amp; GỢI Ý GIẢI NHANH (MIỄN PHÍ):</strong></div>
+            <div style="margin-top:0.3rem; color:var(--amber-bright);"><strong>Mẹo nhớ nhanh:</strong> ${escapeHtml(q.mnemonic || 'Đọc kỹ từ khóa phủ định hoặc điều kiện biên trong câu hỏi.')}</div>
             ${snippet}
           `;
           elPeek.classList.remove('hidden');
@@ -2441,11 +2499,11 @@
         let extraMsg = '';
         if (isCorrect && a.mode === 'mistake') {
           const rec = this.state.mistakeRecovery[q.id];
-          extraMsg = rec === 1 ? ' • Đã đúng 1/2 lần để xóa khỏi Sổ Thù Vặt' : ' • ✅ Đã xóa vĩnh viễn khỏi Sổ Thù Vặt!';
+          extraMsg = rec === 1 ? ' • Đã đúng 1/2 lần để xóa khỏi Sổ Thù Vặt' : ' • [HOÀN THÀNH] Đã xóa vĩnh viễn khỏi Sổ Thù Vặt!';
         }
         elFbTitle.textContent = isCorrect
-          ? `🔥 ĐÒN ĐÁNH CHÍ MẠNG! CHÍNH XÁC! (Chuẩn ${q.kLevel})${extraMsg}`
-          : '💥 BỊ TRÙM PHẢN CÔNG! SAI RỒI! (-20 HP • Đã ghi vào Sổ Thù Vặt)';
+          ? `[CHÍ MẠNG] CHÍNH XÁC! (Chuẩn ${q.kLevel})${extraMsg}`
+          : '[PHẢN ĐÒN] SAI RỒI! (-20 HP • Đã ghi vào Sổ Thù Vặt)';
         elFbTitle.className = isCorrect ? 'feedback-title text-emerald' : 'feedback-title text-rose';
       }
       if (elExp) elExp.textContent = q.explanation || '';
@@ -2453,7 +2511,7 @@
       if (btnNext) {
         const isOver = a.playerHp <= 0 || a.bossHp <= 0 || a.index >= a.questions.length - 1;
         btnNext.innerHTML = isOver
-          ? '🏆 Xem Báo Cáo Chiến Dịch <kbd class="kbd-inline">Enter</kbd>'
+          ? 'Xem Báo Cáo Chiến Dịch <kbd class="kbd-inline">Enter</kbd>'
           : 'Câu Tiếp Theo <span aria-hidden="true">→</span> <kbd class="kbd-inline">Enter</kbd>';
       }
       if (elFeedback) {
@@ -2529,7 +2587,7 @@
       const rStats = safeEl('result-stats');
 
       if (rTitle) {
-        rTitle.textContent = victory ? '🏆 CHIẾN THẮNG! ĐẠI TRÙM ĐÃ BỊ TIÊU DIỆT' : '💥 CHIẾN DỊCH THẤT BẠI — CẦN CỦNG CỐ KIẾN THỨC';
+        rTitle.textContent = victory ? '[CHIẾN THẮNG] ĐẠI TRÙM ĐÃ BỊ TIÊU DIỆT' : '[THẤT BẠI] CẦN CỦNG CỐ KIẾN THỨC';
       }
       if (rSub) {
         rSub.textContent = victory
@@ -2545,7 +2603,7 @@
           </div>
           <div class="spec-stat-box">
             <span class="spec-label">LIÊN KÍCH ĐỈNH NHẤT</span>
-            <span class="spec-value mono-text text-amber">🔥 x${a.maxCombo}</span>
+            <span class="spec-value mono-text text-amber">x${a.maxCombo}</span>
             <span class="spec-note">Chuỗi đúng liên tiếp</span>
           </div>
           <div class="spec-stat-box">
@@ -2645,7 +2703,7 @@
         const base = this._generateWeightedExamQuestions();
         const usedIds = new Set(mixedAi.map((q) => q.id));
         qs = shuffleArray(mixedAi.concat(base.filter((q) => !usedIds.has(q.id))).slice(0, 40));
-        this._showToast(`🤖 Đã tạo đề thi mới gồm ${mixedAi.length} câu AI/Biến thể K3 & đảo vị trí A/B/C/D!`);
+        this._showToast(`[AI] Đã tạo đề thi mới gồm ${mixedAi.length} câu AI/Biến thể K3 & đảo vị trí A/B/C/D!`);
       } else {
         qs = this._generateWeightedExamQuestions();
       }
@@ -2704,8 +2762,8 @@
       if (btnFlag) {
         const isFlagged = ex.flagged[ex.currentIndex];
         btnFlag.innerHTML = isFlagged
-          ? '<span aria-hidden="true">🚩</span> Đã cắm cờ (Bỏ cờ)'
-          : '<span aria-hidden="true">🏳️</span> Đánh dấu xem lại';
+          ? 'Đã cắm cờ (Bỏ cờ)'
+          : 'Đánh dấu xem lại';
       }
 
       const elQCard = safeEl('exam-q-card');
@@ -2871,8 +2929,8 @@
       const elPassBadge = safeEl('exam-pass-badge');
       if (elPassBadge) {
         elPassBadge.textContent = passed
-          ? '✅ ĐẠT CHUẨN ISTQB (PASS) — >= 65%'
-          : '❌ CHƯA ĐẠT (CẦN ÔN THÊM) — Cần tối thiểu 26/40 (65%)';
+          ? '[ĐẠT CHUẨN] ISTQB PASS — >= 65%'
+          : '[CHƯA ĐẠT] CẦN ÔN THÊM — Cần tối thiểu 26/40 (65%)';
         elPassBadge.className = passed ? 'badge-pill badge-emerald' : 'badge-pill badge-rose';
       }
 
@@ -2915,7 +2973,7 @@
                   <span class="meta-badge badge-amber">${escapeHtml(q.kLevel)}</span>
                 </div>
                 <span class="badge-pill ${isRight ? 'badge-emerald' : 'badge-rose'}">
-                  ${isRight ? '✓ Chính xác' : '✗ Sai (Đã thêm vào Sổ Thù Vặt)'}
+                  ${isRight ? 'Chính xác' : 'Sai (Đã thêm vào Sổ Thù Vặt)'}
                 </span>
               </div>
               <p class="q-scenario-text" style="font-size:0.96rem; margin-bottom:0.65rem;">${escapeHtml(q.scenario)}</p>
@@ -2925,7 +2983,7 @@
               </div>
               <div class="explanation-text" style="font-size:0.86rem; border-top:1px solid var(--border-subtle); padding-top:0.5rem;">
                 <strong>Giải thích chi tiết:</strong> ${escapeHtml(q.explanation)}
-                ${q.mnemonic ? `<div class="text-amber" style="margin-top:0.25rem;">💡 <strong>Mẹo nhớ nhanh:</strong> ${escapeHtml(q.mnemonic)}</div>` : ''}
+                ${q.mnemonic ? `<div class="text-amber" style="margin-top:0.25rem;"><strong>Mẹo nhớ nhanh:</strong> ${escapeHtml(q.mnemonic)}</div>` : ''}
               </div>
             </div>
           `;
@@ -3109,7 +3167,7 @@
         res.classList.remove('hidden');
         res.innerHTML = `
           <span class="status-badge badge-amber">BÁO CÁO ĐẬP BUG 60 GIÂY</span>
-          <h3 class="exam-main-title">⚡ KẾT QUẢ ĐẬP BUG TỐC ĐỘ 60 GIÂY</h3>
+          <h3 class="exam-main-title">KẾT QUẢ ĐẬP BUG TỐC ĐỘ 60 GIÂY</h3>
           <div class="score-big mono-text" style="margin:0.5rem 0;">${b.score} ĐIỂM</div>
           <p class="exam-intro-desc" style="margin-bottom:1.25rem;">
             Kỷ lục điểm cao nhất: <strong class="text-cyan">${this.state.blitzHighScore} ĐIỂM</strong>
@@ -3121,14 +3179,14 @@
             </div>
             <div class="spec-stat-box">
               <span class="spec-label">CHUỖI LIÊN KÍCH ĐỈNH</span>
-              <span class="spec-value mono-text text-amber">🔥 x${b.maxStreak}</span>
+              <span class="spec-value mono-text text-amber">x${b.maxStreak}</span>
             </div>
             <div class="spec-stat-box">
               <span class="spec-label">THƯỞNG KINH NGHIỆM</span>
               <span class="spec-value mono-text text-emerald">+${xpEarned} XP</span>
             </div>
           </div>
-          <button type="button" class="btn btn-primary btn-lg btn-blitz-again">🚀 Chơi Lại Đập Bug 60 Giây!</button>
+          <button type="button" class="btn btn-primary btn-lg btn-blitz-again">Chơi Lại Đập Bug 60 Giây!</button>
         `;
         const btnAgain = res.querySelector('.btn-blitz-again');
         if (btnAgain) {
@@ -3193,7 +3251,7 @@
 
       const elFrontMeta = safeEl('fc-front-meta');
       if (elFrontMeta) {
-        elFrontMeta.textContent = `Chương ${card.chapter} • Mục ${card.section} ${isKnown ? '• ✓ Đã thuộc lòng' : ''}`;
+        elFrontMeta.textContent = `Chương ${card.chapter} • Mục ${card.section} ${isKnown ? '• Đã thuộc lòng' : ''}`;
       }
 
       const elBackDef = safeEl('fc-back-def');
@@ -3296,7 +3354,7 @@
                   <span class="meta-badge badge-cyan">Chương ${ch.id}</span>
                   <span class="meta-badge badge-amber">Mục ${escapeHtml(sec.section)}</span>
                 </div>
-                <button type="button" class="btn btn-ghost btn-sm" data-codex-raid="${ch.id}">⚔️ Đột Kích Chương ${ch.id}</button>
+                <button type="button" class="btn btn-ghost btn-sm" data-codex-raid="${ch.id}">Đột Kích Chương ${ch.id}</button>
               </div>
               <h4 style="font-size:1rem; font-weight:700; margin-bottom:0.6rem; color:var(--cyan-bright);">
                 ${escapeHtml(sec.title)}
@@ -3355,7 +3413,7 @@
             <div style="font-size:1.5rem;">${ach.icon}</div>
             <div>
               <div style="font-size:0.82rem; font-weight:700; color:var(--text-primary);">
-                ${escapeHtml(ach.title)} ${unlocked ? '✓ Đã đạt' : '🔒 Chưa mở'}
+                ${escapeHtml(ach.title)} ${unlocked ? '[ĐÃ ĐẠT]' : '[CHƯA MỞ]'}
               </div>
               <div style="font-size:0.74rem; color:var(--text-muted);">
                 ${escapeHtml(ach.desc)}
@@ -3386,7 +3444,7 @@
       return {
         provider: providerEl ? providerEl.value : 'openrouter',
         endpoint: endpointEl ? endpointEl.value.trim() : 'https://ai-api.congnghevietha.vn',
-        model: modelEl && modelEl.value ? modelEl.value : 'openrouter/auto',
+        model: modelEl && modelEl.value ? modelEl.value : 'openrouter/free',
         filterFreeOnly: filterEl ? !!filterEl.checked : true,
         rotationStrategy: rotEl ? rotEl.value : 'failover',
         apiKeys: parsedKeys
@@ -3414,7 +3472,7 @@
             <td><span class="meta-badge badge-cyan">${escapeHtml(providerLabel)}</span></td>
             <td class="mono-text">${escapeHtml(masked)}</td>
             <td><span class="meta-badge badge-emerald">Sẵn sàng</span></td>
-            <td><button type="button" class="btn btn-sm btn-secondary" data-ai-remove-key="${idx}">🗑️ Xóa</button></td>
+            <td><button type="button" class="btn btn-sm btn-secondary" data-ai-remove-key="${idx}">Xóa</button></td>
           </tr>
         `;
       }).join('');
@@ -3427,7 +3485,7 @@
           const nextKeys = (cfg.apiKeys || []).filter((_, i) => i !== removeIdx);
           ai.saveConfig(Object.assign({}, cfg, { apiKeys: nextKeys }));
           this.renderAIView();
-          this._showToast('🗑️ Đã xóa khóa khỏi bể xoay vòng.');
+          this._showToast('Đã xóa khóa khỏi bể xoay vòng.');
         });
       });
     }
@@ -3449,7 +3507,7 @@
       previewEl.innerHTML = `
         <div style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:0.5rem; margin-bottom:0.75rem;">
           <span class="meta-badge badge-emerald">Đang lưu ${list.length} câu hỏi AI / Biến thể mới</span>
-          <button type="button" class="btn btn-sm btn-primary" id="btn-ai-launch-preview-arena">⚔️ Đấu Trùm Với Bộ Câu Hỏi Này Ngay</button>
+          <button type="button" class="btn btn-sm btn-primary" id="btn-ai-launch-preview-arena">Đấu Trùm Với Bộ Câu Hỏi Này Ngay</button>
         </div>
         <div style="display:flex; flex-direction:column; gap:0.65rem;">
           ${recent.map((q, idx) => `
@@ -3459,7 +3517,7 @@
                 <span class="meta-badge badge-amber">${escapeHtml(q.kLevel || 'K2')}</span>
               </div>
               <div style="font-weight:600; color:var(--text-primary); margin-bottom:0.3rem;">${escapeHtml(q.scenario)}</div>
-              <div style="color:var(--emerald-bright); font-size:0.82rem;">✓ Đáp án: ${escapeHtml((q.options && q.options[q.correct]) || '')}</div>
+              <div style="color:var(--emerald-bright); font-size:0.82rem;">Đáp án: ${escapeHtml((q.options && q.options[q.correct]) || '')}</div>
             </div>
           `).join('')}
         </div>
@@ -3470,7 +3528,7 @@
         launchBtn.addEventListener('click', () => {
           if (window.CTFLSound) window.CTFLSound.click();
           const chId = Number(recent[0] && recent[0].chapter) || 1;
-          this.startArenaSession('chapter', chId, recent, `🤖 Đấu Trùm Bộ Đề AI Mới (${recent.length} câu)`);
+          this.startArenaSession('chapter', chId, recent, `[AI] Đấu Trùm Bộ Đề Mới (${recent.length} câu)`);
         });
       }
     }
@@ -3494,7 +3552,7 @@
       if (keysEl) keysEl.value = Array.isArray(cfg.apiKeys) ? cfg.apiKeys.join('\n') : '';
 
       if (modelEl) {
-        const curModel = cfg.model || 'openrouter/auto';
+        const curModel = cfg.model || 'openrouter/free';
         const hasOpt = Array.from(modelEl.options || []).some((o) => o.value === curModel);
         if (!hasOpt && typeof document !== 'undefined') {
           const opt = document.createElement('option');
@@ -3521,7 +3579,7 @@
           const nextCfg = this._readAIFormConfig();
           ai.saveConfig(nextCfg);
           this._renderAIKeysTable(nextCfg.apiKeys);
-          this._showToast(`➕ Đã cập nhật Bể Khóa (${nextCfg.apiKeys.length} key)!`);
+          this._showToast(`Đã cập nhật Bể Khóa (${nextCfg.apiKeys.length} key)!`);
         });
       }
 
@@ -3533,7 +3591,7 @@
           const nextCfg = this._readAIFormConfig();
           ai.saveConfig(nextCfg);
           this._renderAIKeysTable(nextCfg.apiKeys);
-          this._showToast('💾 Đã lưu cấu hình AI OpenRouter!');
+          this._showToast('Đã lưu cấu hình AI OpenRouter!');
         });
       }
 
@@ -3546,23 +3604,23 @@
           ai.saveConfig(formCfg);
           btnRefreshModels.disabled = true;
           const statusEl = safeEl('ai-gen-status');
-          if (statusEl) statusEl.textContent = '🔄 Đang tải danh sách model từ ' + formCfg.provider + '...';
+          if (statusEl) statusEl.textContent = '[ĐANG TẢI] Đang tải danh sách model từ ' + formCfg.provider + '...';
           try {
             const res = await ai.fetchModels(formCfg.provider, formCfg.endpoint, formCfg.filterFreeOnly);
             const models = Array.isArray(res) ? res : (res && Array.isArray(res.models) ? res.models : []);
             const modelEl = safeEl('ai-model-select');
             if (modelEl && models.length > 0) {
               modelEl.innerHTML = models.map((m) => `
-                <option value="${escapeHtml(m.id)}">${m.isFree ? '🆓 ' : ''}${escapeHtml(m.name || m.id)}</option>
+                <option value="${escapeHtml(m.id)}">${m.isFree ? '[FREE] ' : ''}${escapeHtml(m.name || m.id)}</option>
               `).join('');
               if (models.some((m) => m.id === formCfg.model)) {
                 modelEl.value = formCfg.model;
               }
             }
-            if (statusEl) statusEl.textContent = (res && res.message) ? `✅ ${res.message}` : `✅ Đã tải ${models.length} model từ ${formCfg.provider}!`;
-            this._showToast(`🔄 Đã cập nhật ${models.length} model!`);
+            if (statusEl) statusEl.textContent = (res && res.message) ? `[HOÀN THÀNH] ${res.message}` : `[HOÀN THÀNH] Đã tải ${models.length} model từ ${formCfg.provider}!`;
+            this._showToast(`Đã cập nhật ${models.length} model!`);
           } catch (err) {
-            if (statusEl) statusEl.textContent = `⚠️ Không tải được danh sách model: ${err.message || err}`;
+            if (statusEl) statusEl.textContent = `[CẢNH BÁO] Không tải được danh sách model: ${err.message || err}`;
           } finally {
             btnRefreshModels.disabled = false;
           }
@@ -3579,7 +3637,7 @@
           const resultBox = safeEl('ai-test-result-box');
           if (resultBox) {
             resultBox.classList.remove('hidden');
-            resultBox.innerHTML = '<span style="color:var(--cyan-bright);">⚡ Đang Ping kiểm tra toàn bộ API Key trong bể...</span>';
+            resultBox.innerHTML = '<span style="color:var(--cyan-bright);">[PING] Đang kiểm tra toàn bộ API Key trong bể...</span>';
           }
           btnTestKeys.disabled = true;
           try {
@@ -3606,7 +3664,7 @@
             }
           } catch (err) {
             if (resultBox) {
-              resultBox.innerHTML = `<span style="color:var(--rose-bright);">❌ Lỗi kiểm tra kết nối: ${escapeHtml(err.message || err)}</span>`;
+              resultBox.innerHTML = `<span style="color:var(--rose-bright);">[LỖI] Lỗi kiểm tra kết nối: ${escapeHtml(err.message || err)}</span>`;
             }
           } finally {
             btnTestKeys.disabled = false;
@@ -3629,26 +3687,26 @@
           const statusEl = safeEl('ai-gen-status');
 
           btnGenNow.disabled = true;
-          if (statusEl) statusEl.textContent = `🚀 AI (${formCfg.model}) đang đọc Giáo trình ISTQB Tiếng Việt và soạn ${count} câu hỏi mới...`;
+          if (statusEl) statusEl.textContent = `[AI] (${formCfg.model}) đang đọc Giáo trình ISTQB Tiếng Việt và soạn ${count} câu hỏi mới...`;
 
           try {
             const targetChapterForAi = chapterId === 'all' ? 4 : chapterId;
             const aiRes = await ai.generateQuestionsFromSyllabus({ chapterId: targetChapterForAi, count, kLevel });
             const generated = Array.isArray(aiRes) ? aiRes : (aiRes && Array.isArray(aiRes.questions) ? aiRes.questions : []);
             this._loadDataPools();
-            if (statusEl) statusEl.textContent = (aiRes && aiRes.message) ? `✅ ${aiRes.message}` : `✅ Đã soạn xong ${generated.length} câu hỏi mới tinh từ Giáo trình!`;
+            if (statusEl) statusEl.textContent = (aiRes && aiRes.message) ? `[HOÀN THÀNH] ${aiRes.message}` : `[HOÀN THÀNH] Đã soạn xong ${generated.length} câu hỏi mới tinh từ Giáo trình!`;
             this._renderAIGeneratedPreview(generated);
-            this._showToast(`🚀 AI đã soạn xong ${generated.length} câu hỏi mới!`);
+            this._showToast(`[HOÀN THÀNH] AI đã soạn xong ${generated.length} câu hỏi mới!`);
 
             if (count >= 40) {
               this.switchView('exam');
               this.startMockExam(true, generated);
             } else if (generated.length > 0) {
               const targetCh = chapterId === 'all' ? (generated[0].chapter || 1) : chapterId;
-              this.startArenaSession('chapter', targetCh, generated, `🤖 Đấu Trùm Đề Mới AI (${generated.length} câu)`);
+              this.startArenaSession('chapter', targetCh, generated, `[AI] Đấu Trùm Đề Mới (${generated.length} câu)`);
             }
           } catch (err) {
-            if (statusEl) statusEl.textContent = `⚠️ ${err.message || 'Lỗi gọi AI'}. Đang chuyển sang Bộ Biến Thể K3 Offline...`;
+            if (statusEl) statusEl.textContent = `[CẢNH BÁO] ${err.message || 'Lỗi gọi AI'}. Đang chuyển sang Bộ Biến Thể K3 Offline...`;
             const dyn = ai.generateDynamicK3Questions(count, chapterId === 'all' ? null : chapterId);
             this._renderAIGeneratedPreview(dyn);
           } finally {
@@ -3668,14 +3726,14 @@
           const dynQs = ai.generateDynamicK3Questions(count, chapterFilter);
 
           const statusEl = safeEl('ai-gen-status');
-          if (statusEl) statusEl.textContent = `🎲 Đã tạo tức thì ${dynQs.length} câu hỏi toán K3 số liệu mới tinh (đảo cả A/B/C/D)!`;
+          if (statusEl) statusEl.textContent = `[K3] Đã tạo tức thì ${dynQs.length} câu hỏi toán K3 số liệu mới tinh (đảo cả A/B/C/D)!`;
           this._renderAIGeneratedPreview(dynQs);
 
           if (count >= 40) {
             this.switchView('exam');
             this.startMockExam(true, dynQs);
           } else {
-            this.startArenaSession('k3', chapterFilter || 4, dynQs, `🎲 Đấu Trùm Biến Thể Toán K3 (${dynQs.length} câu mới)`);
+            this.startArenaSession('k3', chapterFilter || 4, dynQs, `[K3] Đấu Trùm Biến Thể Toán (${dynQs.length} câu mới)`);
           }
         });
       }

@@ -1,7 +1,7 @@
 /**
  * CTFL Bug Hunter 3D: Nhà Cung Cấp AI Đa Nền Tảng & Bộ Sinh Đề Thi Động
  * Tham chiếu kiến trúc LLMProvider / AIChatController / AIConfigManager từ esg-backend:
- *  - Hỗ trợ OpenRouter (mặc định openrouter/auto), Google Gemini, Ollama (Local AI), OpenAI
+ *  - Hỗ trợ OpenRouter (mặc định openrouter/free), Google Gemini, Ollama (Local AI), OpenAI
  *  - Bể khóa API (API Key Pool) với chiến lược Failover tức thì 0s & Round-Robin
  *  - Tải danh sách model thực tế & Ping kiểm tra toàn bộ từng key kèm độ trễ ms
  *  - AI soạn đề thi mới dựa trực tiếp trên Giáo trình Tiếng Việt ISTQB CTFL v4.0.1
@@ -15,13 +15,32 @@
   const GENERATED_QUESTIONS_KEY = 'ctfl_ai_generated_questions_v1';
   const ROUND_ROBIN_STORAGE_KEY = 'ctfl_ai_rr_index_v1';
 
-  const FAILOVER_HTTP_STATUSES = new Set([401, 402, 403, 429, 500, 502, 503]);
+  const FAILOVER_HTTP_STATUSES = new Set([401, 402, 403, 404, 429, 500, 502, 503]);
+
+  const OPENROUTER_FREE_FALLBACK_CHAIN = [
+    'openrouter/free',
+    'google/gemma-3-27b-it:free',
+    'meta-llama/llama-3.3-70b-instruct:free',
+    'qwen/qwen-2.5-72b-instruct:free'
+  ];
+
+  if (typeof require === 'function' && (!global || !Array.isArray(global.CTFL_LOCAL_OPENROUTER_KEYS))) {
+    try {
+      require('./local-keys.js');
+    } catch (_e) {
+      // Optional local-keys.js not present
+    }
+  }
+
+  const DEFAULT_OPENROUTER_KEYS = Array.isArray(global && global.CTFL_LOCAL_OPENROUTER_KEYS)
+    ? global.CTFL_LOCAL_OPENROUTER_KEYS.slice()
+    : [];
 
   const DEFAULT_CONFIG = {
     provider: 'openrouter',
-    model: 'openrouter/auto',
+    model: 'openrouter/free',
     endpoint: 'https://ai-api.congnghevietha.vn',
-    apiKeys: [],
+    apiKeys: DEFAULT_OPENROUTER_KEYS.slice(),
     rotationStrategy: 'failover', // 'failover' | 'round_robin'
     temperature: 0.4,
     filterFreeOnly: true
@@ -30,8 +49,8 @@
   const FALLBACK_MODELS = {
     openrouter: [
       {
-        id: 'openrouter/auto',
-        name: 'Free Models Router - Tự động chọn model miễn phí tốt nhất',
+        id: 'openrouter/free',
+        name: 'OpenRouter Free Router — Tự động chọn Model Miễn Phí ($0/token)',
         isFree: true,
         context_length: 128000
       },
@@ -118,9 +137,10 @@
    */
   function parseApiKeys(input) {
     if (!input) return [];
-    const rawList = Array.isArray(input)
-      ? input
-      : String(input).split(/[\n,;]+/);
+    const normalizedStr = Array.isArray(input)
+      ? input.join('\n')
+      : String(input).replace(/(?=sk-or-v1-)/g, '\n');
+    const rawList = normalizedStr.split(/[\s,;]+/);
 
     const seen = new Set();
     const cleaned = [];
@@ -169,14 +189,24 @@
       ? parsed.provider
       : DEFAULT_CONFIG.provider;
 
-    const apiKeys = parseApiKeys(parsed.apiKeys !== undefined ? parsed.apiKeys : parsed.apiKey);
-    const rotationStrategy = parsed.rotationStrategy === 'round_robin' ? 'round_robin' : 'failover';
+    let apiKeys = parseApiKeys(parsed.apiKeys !== undefined ? parsed.apiKeys : parsed.apiKey);
+    if (apiKeys.length === 0 && provider === 'openrouter') {
+      apiKeys = DEFAULT_OPENROUTER_KEYS.slice();
+    }
+    const rotationStrategy = (parsed.rotationStrategy === 'round_robin' || parsed.rotationStrategy === 'round-robin')
+      ? 'round_robin'
+      : 'failover';
     const tempNum = Number(parsed.temperature);
     const temperature = Number.isFinite(tempNum) ? Math.min(1.5, Math.max(0, tempNum)) : DEFAULT_CONFIG.temperature;
 
+    let resolvedModel = String(parsed.model || DEFAULT_CONFIG.model).trim() || DEFAULT_CONFIG.model;
+    if (provider === 'openrouter' && resolvedModel === 'openrouter/auto') {
+      resolvedModel = 'openrouter/free';
+    }
+
     return {
       provider,
-      model: String(parsed.model || DEFAULT_CONFIG.model).trim() || DEFAULT_CONFIG.model,
+      model: resolvedModel,
       endpoint: normalizeEndpoint(parsed.endpoint || DEFAULT_CONFIG.endpoint),
       apiKeys,
       rotationStrategy,
@@ -208,10 +238,10 @@
         : current.filterFreeOnly
     };
 
-    if (!merged.model) {
+    if (!merged.model || (merged.provider === 'openrouter' && merged.model === 'openrouter/auto')) {
       merged.model = merged.provider === 'openrouter'
-        ? 'openrouter/auto'
-        : (FALLBACK_MODELS[merged.provider]?.[0]?.id || 'openrouter/auto');
+        ? 'openrouter/free'
+        : (FALLBACK_MODELS[merged.provider]?.[0]?.id || 'openrouter/free');
     }
 
     safeSetStorage(CONFIG_STORAGE_KEY, JSON.stringify(merged));
@@ -269,12 +299,12 @@
 
   function ensureOpenRouterAutoFirst(models) {
     const autoItem = {
-      id: 'openrouter/auto',
-      name: 'Free Models Router - Tự động chọn model miễn phí tốt nhất',
+      id: 'openrouter/free',
+      name: 'OpenRouter Free Router — Tự động chọn Model Miễn Phí ($0/token)',
       isFree: true,
       context_length: 128000
     };
-    const filtered = (models || []).filter(m => m && m.id !== 'openrouter/auto');
+    const filtered = (models || []).filter(m => m && m.id !== 'openrouter/free' && m.id !== 'openrouter/auto');
     return [autoItem, ...filtered];
   }
 
@@ -298,7 +328,7 @@
           const completionPrice = Number(m?.pricing?.completion ?? 1);
           const isFree = (promptPrice === 0 && completionPrice === 0) ||
             String(m.id || '').includes(':free') ||
-            m.id === 'openrouter/auto';
+            m.id === 'openrouter/free';
           return {
             id: m.id,
             name: (m.name || m.id) + (isFree ? ' [Miễn phí]' : ''),
@@ -477,7 +507,7 @@
   // Lõi gọi LLM theo từng Provider & Cơ chế Key Pool Failover 0s
   // =========================================================================
 
-  async function executeSingleProviderRequest({ provider, model, endpoint, apiKey, messages, temperature = 0.4, maxTokens = 2200, timeoutMs = 45000 }) {
+  async function executeSingleProviderRequest({ provider, model, endpoint, apiKey, messages, temperature = 0.4, maxTokens = 2200, timeoutMs = 45000, omitMaxTokens = false }) {
     if (provider === 'openrouter' || provider === 'openai') {
       const url = provider === 'openrouter'
         ? 'https://openrouter.ai/api/v1/chat/completions'
@@ -492,17 +522,23 @@
         headers['X-Title'] = 'CTFL Bug Hunter 3D';
       }
 
+      const isOpenRouterFree = provider === 'openrouter' && (model === 'openrouter/free' || String(model || '').endsWith(':free'));
+
+      const reqBody = {
+        model,
+        messages,
+        temperature
+      };
+      if (!omitMaxTokens && !isOpenRouterFree && maxTokens) {
+        reqBody.max_tokens = maxTokens;
+      }
+
       const res = await fetchWithTimeout(
         url,
         {
           method: 'POST',
           headers,
-          body: JSON.stringify({
-            model,
-            messages,
-            temperature,
-            max_tokens: maxTokens
-          })
+          body: JSON.stringify(reqBody)
         },
         timeoutMs
       );
@@ -674,56 +710,76 @@
 
     const attempts = [];
     let lastError = null;
+    let lastHttpStatus = 0;
 
-    for (let i = 0; i < orderedIndices.length; i++) {
-      const keyIdx = orderedIndices[i];
-      const key = keys[keyIdx];
-      const masked = maskApiKey(key);
-      const t0 = nowMs();
+    async function tryModelAcrossKeys(targetModel, targetMaxTokens, omitMaxTokens = false) {
+      for (let i = 0; i < orderedIndices.length; i++) {
+        const keyIdx = orderedIndices[i];
+        const key = keys[keyIdx];
+        const masked = maskApiKey(key);
+        const t0 = nowMs();
 
-      try {
-        const res = await executeSingleProviderRequest({
-          provider,
-          model,
-          endpoint: cfg.endpoint,
-          apiKey: key,
-          messages,
-          temperature,
-          maxTokens,
-          timeoutMs
-        });
-        attempts.push({
-          index: keyIdx,
-          key_masked: masked,
-          status: 'active',
-          duration_ms: Math.round(nowMs() - t0),
-          message: 'Thành công'
-        });
-        return {
-          text: res.text,
-          provider,
-          model,
-          keyUsedMasked: masked,
-          attempts
-        };
-      } catch (err) {
-        const status = err.httpStatus || 0;
-        const dur = Math.round(nowMs() - t0);
-        attempts.push({
-          index: keyIdx,
-          key_masked: masked,
-          status: 'error',
-          http_status: status,
-          duration_ms: dur,
-          message: err.message
-        });
-        lastError = err;
+        try {
+          const res = await executeSingleProviderRequest({
+            provider,
+            model: targetModel,
+            endpoint: cfg.endpoint,
+            apiKey: key,
+            messages,
+            temperature,
+            maxTokens: targetMaxTokens,
+            timeoutMs,
+            omitMaxTokens
+          });
+          attempts.push({
+            index: keyIdx,
+            key_masked: masked,
+            model: targetModel,
+            status: 'active',
+            duration_ms: Math.round(nowMs() - t0),
+            message: 'Thành công'
+          });
+          return {
+            text: res.text,
+            provider,
+            model: targetModel,
+            keyUsedMasked: masked,
+            attempts
+          };
+        } catch (err) {
+          const status = err.httpStatus || 0;
+          lastHttpStatus = status;
+          const dur = Math.round(nowMs() - t0);
+          attempts.push({
+            index: keyIdx,
+            key_masked: masked,
+            model: targetModel,
+            status: 'error',
+            http_status: status,
+            duration_ms: dur,
+            message: err.message
+          });
+          lastError = err;
 
-        // Failover tức thì 0s nếu gặp lỗi quota/auth/server hoặc lỗi mạng
-        const shouldFailover = FAILOVER_HTTP_STATUSES.has(status) || status === 0;
-        if (!shouldFailover || i === orderedIndices.length - 1) {
-          break;
+          const shouldFailover = FAILOVER_HTTP_STATUSES.has(status) || status === 0;
+          if (!shouldFailover || i === orderedIndices.length - 1) {
+            break;
+          }
         }
+      }
+      return null;
+    }
+
+    const primaryRes = await tryModelAcrossKeys(model, maxTokens, false);
+    if (primaryRes) return primaryRes;
+
+    // Nếu OpenRouter gặp lỗi (402 / 429 / 404 / 5xx hoặc phản hồi rỗng), tự động fallback qua chuỗi model miễn phí
+    if (provider === 'openrouter' && lastHttpStatus !== 401) {
+      const fallbackModels = OPENROUTER_FREE_FALLBACK_CHAIN.filter((m) => m !== model || lastHttpStatus === 402);
+      for (let mIdx = 0; mIdx < fallbackModels.length; mIdx++) {
+        const fbModel = fallbackModels[mIdx];
+        const fbRes = await tryModelAcrossKeys(fbModel, maxTokens, true);
+        if (fbRes) return fbRes;
       }
     }
 
@@ -1155,13 +1211,14 @@
       '{"id":"ai_q1","chapter":' + Number(chapterId) + ',"section":"' + (sectionCode || `${chapterId}.1`) + '","kLevel":"K2","difficulty":"' + difficulty + '","scenario":"...","options":["A. ...","B. ...","C. ...","D. ..."],"correct":0,"explanation":"Giải thích chi tiết tại sao đáp án đúng và tại sao các đáp án khác sai dựa vào giáo trình.","mnemonic":"Mẹo ghi nhớ ngắn gọn 1 câu."}'
     ].join('\n');
 
+    const syllabusExcerpt = String(ctx.text || '').slice(0, 5500);
     const userPrompt = [
       `Hãy soạn đúng ${safeCount} câu hỏi trắc nghiệm mới cho: ${ctx.title}.`,
       kLevelInstruction,
       diffInstruction,
       '',
       '=== TÀI LIỆU GIÁO TRÌNH GỐC ISTQB CTFL v4.0.1 (TIẾNG VIỆT) ===',
-      ctx.text,
+      syllabusExcerpt,
       '=== HẾT TÀI LIỆU ===',
       '',
       `Trả về ngay mảng JSON gồm ${safeCount} câu hỏi.`
@@ -1171,7 +1228,7 @@
       { role: 'system', content: systemPrompt },
       { role: 'user', content: userPrompt }
     ], {
-      maxTokens: Math.max(2000, safeCount * 450),
+      maxTokens: Math.min(2200, Math.max(1500, safeCount * 300)),
       timeoutMs: 60000
     });
 
