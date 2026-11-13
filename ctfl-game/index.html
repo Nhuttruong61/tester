@@ -8,7 +8,7 @@
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:ital,wght@0,400;0,500;0,600;0,700;1,400&family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=Space+Grotesk:wght@500;600;700&display=swap" rel="stylesheet" />
-  <link rel="stylesheet" href="css/styles.css" />
+  <link rel="stylesheet" href="css/styles.css?v=4.0.3" />
 </head>
 <body>
   <!-- Full-Screen Interactive 3D Three.js World Canvas -->
@@ -20,16 +20,16 @@
   <!-- 3D Action Control Bar & Interactive Guide HUD -->
   <div id="world3d-hud" class="world3d-hud" role="region" aria-label="Điều khiển nhân vật 3D">
     <div class="world3d-guide">
-      <span><strong>ĐIỀU KHIỂN 3D:</strong> <kbd>WASD</kbd>/<kbd>Mũi tên</kbd> Di chuyển</span>
-      <span>• <kbd>Click</kbd>/<kbd>F</kbd> Bắn Laser diệt Bug</span>
-      <span>• <kbd>Space</kbd> Lướt nhanh</span>
-      <span>• <kbd>E</kbd>/Click Trùm để Khiêu chiến</span>
+      <span><strong>3D:</strong> <kbd>WASD</kbd> Di chuyển</span>
+      <span>• <kbd>Click</kbd>/<kbd>F</kbd> Bắn Bug</span>
+      <span>• <kbd>Space</kbd> Lướt</span>
+      <span>• <kbd>E</kbd> Khiêu chiến</span>
     </div>
     <div class="world3d-actions">
-      <button id="btn-3d-shoot" class="btn btn-sm btn-secondary" type="button">Bắn Laser [F]</button>
+      <button id="btn-3d-shoot" class="btn btn-sm btn-secondary" type="button">Bắn [F]</button>
       <button id="btn-3d-dash" class="btn btn-sm btn-secondary" type="button">Lướt [Space]</button>
       <button id="btn-3d-interact" class="btn btn-sm btn-secondary" type="button">Khiêu Chiến [E]</button>
-      <button id="btn-toggle-ui-panel" class="btn btn-sm btn-primary" type="button">Đi Dạo &amp; Bắn Bug 3D Toàn Màn Hình</button>
+      <button id="btn-toggle-ui-panel" class="btn btn-sm btn-primary" type="button">Mở Bảng Học &amp; Thi [ESC]</button>
     </div>
   </div>
 
@@ -166,11 +166,11 @@
     <div class="workspace-window-bar">
       <div class="workspace-window-status">
         <span class="status-dot pulse-cyan"></span>
-        <span>BẢNG ĐIỀU KHIỂN CHIẾN THUẬT — NHẤN [ESC] HOẶC NÚT ĐÓNG ĐỂ RA THẾ GIỚI 3D</span>
+        <span>CHẾ ĐỘ BẢNG 2D — NHẤN <kbd>ESC</kbd> ĐỂ RA THẾ GIỚI 3D</span>
       </div>
       <div class="workspace-window-actions">
-        <button type="button" class="btn btn-sm btn-secondary" data-action="back-to-campaign">Về Trang Chủ Chiến Dịch</button>
-        <button type="button" class="btn btn-sm btn-danger-outline" data-action="close-workspace-panel">✕ Đóng Bảng Này (Ra Thế Giới 3D) [ESC]</button>
+        <button type="button" class="btn btn-sm btn-secondary hidden" data-action="back-to-campaign">← Trang Chủ Chiến Dịch</button>
+        <button type="button" class="btn btn-sm btn-danger-outline" data-action="close-workspace-panel">✕ Đóng Bảng (Ra 3D) [ESC]</button>
       </div>
     </div>
 
@@ -1066,15 +1066,15 @@
   </div>
 
   <!-- Scripts (Strict Loading Order) -->
-  <script src="js/data-chap123.js"></script>
-  <script src="js/data-chap456.js"></script>
-  <script src="js/syllabus-full-vi.js"></script>
-  <script src="js/local-keys.js"></script>
-  <script src="js/ai-provider.js"></script>
-  <script src="js/three.min.js"></script>
-  <script src="js/world3d.js"></script>
-  <script src="js/battle-stage.js"></script>
-  <script src="js/sound-fx.js"></script>
-  <script src="js/app.js"></script>
+  <script src="js/data-chap123.js?v=4.0.3"></script>
+  <script src="js/data-chap456.js?v=4.0.3"></script>
+  <script src="js/syllabus-full-vi.js?v=4.0.3"></script>
+  <script src="js/local-keys.js?v=4.0.3"></script>
+  <script src="js/ai-provider.js?v=4.0.3"></script>
+  <script src="js/three.min.js?v=4.0.3"></script>
+  <script src="js/world3d.js?v=4.0.3"></script>
+  <script src="js/battle-stage.js?v=4.0.3"></script>
+  <script src="js/sound-fx.js?v=4.0.3"></script>
+  <script src="js/app.js?v=4.0.3"></script>
 </body>
 </html>

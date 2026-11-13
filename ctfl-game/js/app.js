@@ -497,12 +497,12 @@
       document.documentElement.setAttribute('data-theme', theme);
       const btn = safeEl('btn-theme-toggle');
       if (btn) {
-        btn.innerHTML = `<span class="util-icon" aria-hidden="true">${theme === 'light' ? 'SÁNG' : 'TỐI'}</span><span class="util-label">${theme === 'light' ? 'SÁNG' : 'TỐI'}</span>`;
+        btn.innerHTML = `<span class="util-icon" aria-hidden="true">UI</span><span class="util-label">${theme === 'light' ? 'SÁNG' : 'TỐI'}</span>`;
       }
       const soundBtn = safeEl('btn-sound-toggle');
       if (soundBtn && window.CTFLSound) {
         const on = window.CTFLSound.enabled;
-        soundBtn.innerHTML = `<span class="util-icon" aria-hidden="true">${on ? 'BẬT' : 'TẮT'}</span><span class="util-label">${on ? 'BẬT TIẾNG' : 'TẮT TIẾNG'}</span>`;
+        soundBtn.innerHTML = `<span class="util-icon" aria-hidden="true">SFX</span><span class="util-label">${on ? 'BẬT' : 'TẮT'}</span>`;
       }
     }
 
@@ -638,8 +638,12 @@
       if (!btnToggle || typeof document === 'undefined' || !document.body) return;
       const isRoam = document.body.classList.contains('world3d-freeroam');
       btnToggle.innerHTML = isRoam
-        ? 'Hiện Bảng Điều Khiển 2D'
-        : 'Ẩn/Hiện Bảng Để Đi Dạo 3D';
+        ? 'Mở Bảng Học &amp; Thi [ESC]'
+        : 'Ra Thế Giới 3D [ESC]';
+      const hudEl = safeEl('world3d-hud');
+      if (hudEl) {
+        hudEl.style.display = isRoam ? 'flex' : 'none';
+      }
     }
 
     switchView(viewName) {
@@ -698,6 +702,9 @@
           } else {
             tab.classList.remove('active');
           }
+        });
+        document.querySelectorAll('[data-action="back-to-campaign"]').forEach((btn) => {
+          btn.classList.toggle('hidden', viewName === 'campaign');
         });
       }
 
@@ -825,7 +832,7 @@
         btnSound.addEventListener('click', () => {
           if (window.CTFLSound) {
             const on = window.CTFLSound.toggle();
-            btnSound.innerHTML = `<span class="util-icon" aria-hidden="true">${on ? 'BẬT' : 'TẮT'}</span><span class="util-label">${on ? 'BẬT TIẾNG' : 'TẮT TIẾNG'}</span>`;
+            btnSound.innerHTML = `<span class="util-icon" aria-hidden="true">SFX</span><span class="util-label">${on ? 'BẬT' : 'TẮT'}</span>`;
           }
         });
       }

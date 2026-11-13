@@ -310,17 +310,22 @@
           promptEl.style.cssText = [
             'position:fixed',
             'left:50%',
-            'bottom:96px',
+            'bottom:68px',
             'transform:translateX(-50%)',
+            'width:max-content',
+            'max-width:calc(100vw - 24px)',
+            'white-space:nowrap',
+            'overflow:hidden',
+            'text-overflow:ellipsis',
             'background:rgba(6, 18, 34, 0.92)',
-            'border:2px solid #06b6d4',
-            'box-shadow:0 0 25px rgba(6, 182, 212, 0.55)',
+            'border:1.5px solid #06b6d4',
+            'box-shadow:0 0 18px rgba(6, 182, 212, 0.45)',
             'color:#f8fafc',
-            'padding:10px 22px',
-            'border-radius:999px',
+            'padding:7px 16px',
+            'border-radius:8px',
             'font-weight:700',
-            'font-size:14px',
-            'letter-spacing:0.3px',
+            'font-size:13px',
+            'letter-spacing:0.2px',
             'pointer-events:auto',
             'cursor:pointer',
             'display:none',
@@ -1107,17 +1112,18 @@
           'left:0',
           'top:0',
           'transform:translate(-50%, -100%)',
-          'background:rgba(7, 13, 28, 0.86)',
+          'width:max-content',
+          'max-width:210px',
+          'background:rgba(7, 13, 28, 0.88)',
           `border:1.5px solid ${colorHex}`,
-          `box-shadow:0 4px 18px ${colorHex}44`,
+          `box-shadow:0 4px 14px ${colorHex}33`,
           'color:#f8fafc',
-          'padding:6px 12px',
-          'border-radius:10px',
+          'padding:5px 10px',
+          'border-radius:8px',
           'pointer-events:auto',
           'cursor:pointer',
           'user-select:none',
           'text-align:center',
-          'min-width:155px',
           'backdrop-filter:blur(6px)',
           'transition:opacity 0.2s ease'
         ].join(';');
@@ -2069,15 +2075,21 @@
       const THREE = window.THREE;
       if (!THREE || !this.camera) return;
 
-      const is3DActive = typeof document !== 'undefined' && document.body &&
-        (document.body.classList.contains('world3d-freeroam') || document.body.classList.contains('arena-3d-battle'));
+      const isFreeroam = typeof document !== 'undefined' && document.body &&
+        document.body.classList.contains('world3d-freeroam');
+      const is3DActive = isFreeroam || (typeof document !== 'undefined' && document.body &&
+        document.body.classList.contains('arena-3d-battle'));
+      const hudEl = typeof document !== 'undefined' ? document.getElementById('world3d-hud') : null;
+      if (hudEl) {
+        hudEl.style.display = isFreeroam ? 'flex' : 'none';
+      }
       if (!is3DActive) {
         if (this.labelContainer) this.labelContainer.style.display = 'none';
         if (this.promptBanner) this.promptBanner.style.display = 'none';
         return;
       }
-      if (this.labelContainer && document.body.classList.contains('world3d-freeroam')) {
-        this.labelContainer.style.display = 'block';
+      if (this.labelContainer) {
+        this.labelContainer.style.display = isFreeroam ? 'block' : 'none';
       }
 
       const w = window.innerWidth || 1280;
