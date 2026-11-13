@@ -77,6 +77,7 @@ const jsFiles = [
   'js/data-chap456.js',
   'js/syllabus-full-vi.js',
   'js/ai-provider.js',
+  'js/world3d.js',
   'js/battle-stage.js',
   'js/sound-fx.js',
   'js/app.js'
@@ -699,6 +700,7 @@ vm.createContext(domWindow);
 
 const syllabusViPath = path.join(ROOT_DIR, 'js/syllabus-full-vi.js');
 const aiProviderPath = path.join(ROOT_DIR, 'js/ai-provider.js');
+const world3dPath = path.join(ROOT_DIR, 'js/world3d.js');
 const battleStagePath = path.join(ROOT_DIR, 'js/battle-stage.js');
 
 try {
@@ -706,6 +708,7 @@ try {
   vm.runInContext(fs.readFileSync(chap456Path, 'utf8'), domWindow, { filename: 'data-chap456.js' });
   vm.runInContext(fs.readFileSync(syllabusViPath, 'utf8'), domWindow, { filename: 'syllabus-full-vi.js' });
   vm.runInContext(fs.readFileSync(aiProviderPath, 'utf8'), domWindow, { filename: 'ai-provider.js' });
+  vm.runInContext(fs.readFileSync(world3dPath, 'utf8'), domWindow, { filename: 'world3d.js' });
   vm.runInContext(fs.readFileSync(battleStagePath, 'utf8'), domWindow, { filename: 'battle-stage.js' });
   vm.runInContext(fs.readFileSync(soundFxPath, 'utf8'), domWindow, { filename: 'sound-fx.js' });
   vm.runInContext(fs.readFileSync(appJsPath, 'utf8'), domWindow, { filename: 'app.js' });
@@ -765,7 +768,7 @@ try {
   const sfx = domWindow.CTFLSound;
   assertCheck(Boolean(sfx), 'window.CTFLSound is defined');
   if (sfx) {
-    const requiredMethods = ['click', 'select', 'correct', 'wrong', 'criticalHit', 'bossDefeat', 'powerup', 'levelUp', 'tick', 'examFinish', 'toggle'];
+    const requiredMethods = ['click', 'select', 'correct', 'wrong', 'criticalHit', 'bossDefeat', 'powerup', 'levelUp', 'tick', 'examFinish', 'laserSlash', 'crossLaser', 'spinLaser', 'toggle'];
     const missingMethods = requiredMethods.filter(m => typeof sfx[m] !== 'function');
     assertCheck(missingMethods.length === 0, `window.CTFLSound implements all required Web Audio methods`, `Missing: ${missingMethods.join(', ')}`);
     // Invoke each method once to ensure no runtime exceptions
@@ -779,6 +782,33 @@ try {
   assertCheck(Boolean(pt), 'window.CTFLParticles is defined');
 } catch (err) {
   assertCheck(false, 'CTFLSound & CTFLParticles verification', err.message);
+}
+
+// Verify 3D Laser Slash skills, Ollama/Local AI removal, NullPointer cleanup & Right-Click Lock
+try {
+  const aiJsText = fs.readFileSync(path.join(ROOT_DIR, 'js', 'ai-provider.js'), 'utf8');
+  const world3dText = fs.readFileSync(path.join(ROOT_DIR, 'js', 'world3d.js'), 'utf8');
+  const stageJsText = fs.readFileSync(path.join(ROOT_DIR, 'js', 'battle-stage.js'), 'utf8');
+  const chap123Text = fs.readFileSync(path.join(ROOT_DIR, 'js', 'data-chap123.js'), 'utf8');
+
+  const hasLocalAiResidue = /ai-endpoint-input|congnghevietha|ollama/i.test(htmlContent + '\n' + aiJsText + '\n' + appJsContent);
+  assertCheck(!hasLocalAiResidue, 'Local AI / Ollama & custom endpoint UI/config completely removed');
+
+  const hasNullPointerBossOrBug = /NullPointer\s*Overlord|Đại Ma Vương NullPointer|Lỗi Con Trỏ Null/i.test(
+    htmlContent + '\n' + world3dText + '\n' + stageJsText + '\n' + chap123Text
+  );
+  assertCheck(!hasNullPointerBossOrBug, 'All NullPointer boss/bug labels replaced with 100% Vietnamese ISTQB names');
+
+  const w3d = domWindow.CTFLWorld3D;
+  assertCheck(
+    Boolean(w3d && typeof w3d.triggerLaserSlash === 'function' && typeof w3d.triggerCrossLaser === 'function' && typeof w3d.triggerSpinLaser === 'function'),
+    'window.CTFLWorld3D exposes 3 outer-world Laser Slash skills (triggerLaserSlash, triggerCrossLaser, triggerSpinLaser)'
+  );
+
+  const hasRightClickLock = /contextmenu/.test(appJsContent) && /contextmenu/.test(world3dText) && /contextmenu/.test(stageJsText);
+  assertCheck(hasRightClickLock, 'Right-click contextmenu lock is enforced across app.js, world3d.js, and battle-stage.js');
+} catch (err) {
+  assertCheck(false, 'Laser skills, Local AI removal, NullPointer cleanup & Right-click lock checks', err.message);
 }
 
 // Simulate user interactions (tab switching, starting exam, starting blitz, flashcards, codex search)
@@ -799,12 +829,12 @@ try {
   const nextFcBtn = mockElements.get('btn-fc-next');
   if (nextFcBtn) nextFcBtn.click();
 
-  // New features: AI Exam, Dynamic K3 Arena, Battle Stage actions, Study K3 Simulator
+  // New features: AI Exam, Dynamic K3 Arena, Battle Stage actions, 3D Laser Slash HUD buttons, Study K3 Simulator
   const startAiExamBtn = mockElements.get('btn-start-ai-exam');
   if (startAiExamBtn) startAiExamBtn.click();
   const dynK3Btn = mockElements.get('btn-dynamic-k3-now');
   if (dynK3Btn) dynK3Btn.click();
-  ['btn-stage-slash', 'btn-stage-shoot', 'btn-stage-shield', 'btn-stage-ult', 'btn-study-mode-sim', 'btn-study-mode-full'].forEach(id => {
+  ['btn-stage-slash', 'btn-stage-shoot', 'btn-stage-shield', 'btn-stage-ult', 'btn-3d-slash', 'btn-3d-xslash', 'btn-3d-spinslash', 'btn-study-mode-sim', 'btn-study-mode-full'].forEach(id => {
     const el = mockElements.get(id);
     if (el) el.click();
   });

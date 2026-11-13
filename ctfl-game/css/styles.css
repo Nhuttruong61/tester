@@ -2929,11 +2929,11 @@ input:focus-visible,
   display: flex;
   align-items: center;
   justify-content: center;
-  gap: 0.75rem;
+  gap: 0.5rem;
   flex-wrap: nowrap;
   width: max-content;
   max-width: calc(100vw - 24px);
-  padding: 0.42rem 0.85rem;
+  padding: 0.38rem 0.72rem;
   border-radius: var(--radius-md);
   background: rgba(9, 13, 22, 0.92);
   border: 1px solid var(--border-cyan);
@@ -2944,27 +2944,27 @@ input:focus-visible,
 .world3d-guide {
   display: flex;
   align-items: center;
-  gap: 0.45rem;
+  gap: 0.38rem;
   flex-wrap: nowrap;
   white-space: nowrap;
-  font-size: 0.74rem;
+  font-size: 0.72rem;
   color: var(--text-secondary);
 }
 
 .world3d-actions {
   display: flex;
   align-items: center;
-  gap: 0.35rem;
+  gap: 0.28rem;
   flex-wrap: nowrap;
   white-space: nowrap;
 }
 
 .world3d-actions .btn-sm {
-  padding: 0.3rem 0.6rem;
-  font-size: 0.74rem;
+  padding: 0.28rem 0.54rem;
+  font-size: 0.72rem;
 }
 
-@media (max-width: 1024px) {
+@media (max-width: 1120px) {
   .world3d-hud {
     flex-wrap: wrap;
     width: calc(100vw - 24px);
@@ -2991,6 +2991,10 @@ body.world3d-freeroam .main-workspace {
   max-height: 0;
   overflow: hidden;
   padding: 0;
+}
+
+body:not(.world3d-freeroam) #world3d-canvas {
+  pointer-events: none !important;
 }
 
 body:not(.world3d-freeroam) #world3d-hud,

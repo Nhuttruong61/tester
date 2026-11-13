@@ -150,6 +150,29 @@
         this._tone(311.13, 'sawtooth', 0.4, 0.12, 0.4, 261.63);
       }
     }
+
+    laserSlash(combo = 1) {
+      const step = Math.max(1, Math.min(3, Number(combo) || 1));
+      const baseFreq = step === 3 ? 980 : (step === 2 ? 840 : 720);
+      this._tone(baseFreq, 'sawtooth', 0.11, 0.14, 0, 210);
+      this._tone(baseFreq * 1.4, 'triangle', 0.14, 0.12, 0.02, 340);
+      if (step === 3) {
+        this._tone(1180, 'sine', 0.18, 0.13, 0.05, 520);
+      }
+    }
+
+    crossLaser() {
+      this._tone(920, 'sawtooth', 0.13, 0.15, 0, 240);
+      this._tone(1240, 'square', 0.15, 0.12, 0.04, 310);
+      this._tone(660, 'triangle', 0.22, 0.14, 0.08, 1080);
+    }
+
+    spinLaser() {
+      const sweep = [520, 680, 860, 1120];
+      sweep.forEach((f, idx) => {
+        this._tone(f, idx % 2 === 0 ? 'sawtooth' : 'triangle', 0.13, 0.13, idx * 0.045, f * 0.45);
+      });
+    }
   }
 
   class ParticleEngine {

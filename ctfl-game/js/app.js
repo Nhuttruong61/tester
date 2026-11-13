@@ -754,6 +754,21 @@
       }
 
       if (typeof document !== 'undefined') {
+        document.addEventListener(
+          'contextmenu',
+          (e) => {
+            if (e && typeof e.preventDefault === 'function') e.preventDefault();
+          },
+          { capture: true }
+        );
+        document.addEventListener(
+          'auxclick',
+          (e) => {
+            if (e && e.button === 2 && typeof e.preventDefault === 'function') e.preventDefault();
+          },
+          { capture: true }
+        );
+
         document.querySelectorAll('[data-action="close-workspace-panel"]').forEach((btn) => {
           btn.addEventListener('click', () => {
             if (window.CTFLSound) window.CTFLSound.click();
@@ -784,6 +799,45 @@
             }
           });
         }
+      }
+
+      const btn3dSlash = safeEl('btn-3d-slash');
+      if (btn3dSlash) {
+        btn3dSlash.addEventListener('click', () => {
+          if (window.CTFLWorld3D) {
+            if (typeof window.CTFLWorld3D.setControlAction === 'function') {
+              window.CTFLWorld3D.setControlAction('slash');
+            } else if (typeof window.CTFLWorld3D.triggerLaserSlash === 'function') {
+              window.CTFLWorld3D.triggerLaserSlash();
+            }
+          }
+        });
+      }
+
+      const btn3dXSlash = safeEl('btn-3d-xslash');
+      if (btn3dXSlash) {
+        btn3dXSlash.addEventListener('click', () => {
+          if (window.CTFLWorld3D) {
+            if (typeof window.CTFLWorld3D.setControlAction === 'function') {
+              window.CTFLWorld3D.setControlAction('xslash');
+            } else if (typeof window.CTFLWorld3D.triggerCrossLaser === 'function') {
+              window.CTFLWorld3D.triggerCrossLaser();
+            }
+          }
+        });
+      }
+
+      const btn3dSpinSlash = safeEl('btn-3d-spinslash');
+      if (btn3dSpinSlash) {
+        btn3dSpinSlash.addEventListener('click', () => {
+          if (window.CTFLWorld3D) {
+            if (typeof window.CTFLWorld3D.setControlAction === 'function') {
+              window.CTFLWorld3D.setControlAction('spinslash');
+            } else if (typeof window.CTFLWorld3D.triggerSpinLaser === 'function') {
+              window.CTFLWorld3D.triggerSpinLaser();
+            }
+          }
+        });
       }
 
       const btn3dShoot = safeEl('btn-3d-shoot');
@@ -897,6 +951,7 @@
       const campaignFilterBar = safeEl('campaign-filter-bar');
       if (campaignFilterBar) {
         campaignFilterBar.addEventListener('click', (e) => {
+          if (!e || !e.target || typeof e.target.closest !== 'function') return;
           const pill = e.target.closest('[data-filter]');
           if (!pill) return;
           if (window.CTFLSound) window.CTFLSound.click();
@@ -1219,7 +1274,7 @@
           const hasKeys = Array.isArray(cfg.apiKeys) && cfg.apiKeys.length > 0;
           try {
             let newQs = [];
-            if (hasKeys || cfg.provider === 'ollama') {
+            if (hasKeys) {
               this._showToast(`[AI] Đang soạn bài tập mới từ Chương ${chId}...`);
               const aiRes = await ai.generateQuestionsFromSyllabus({ chapterId: chId, count: 5, kLevel: 'mixed' });
               newQs = Array.isArray(aiRes) ? aiRes : (aiRes && Array.isArray(aiRes.questions) ? aiRes.questions : []);
@@ -1567,7 +1622,7 @@
             try {
               const cfg = ai.getConfig ? ai.getConfig() : {};
               let newQs = [];
-              if ((cfg.apiKeys && cfg.apiKeys.length > 0) || cfg.provider === 'ollama') {
+              if (cfg.apiKeys && cfg.apiKeys.length > 0) {
                 const aiRes = await ai.generateQuestionsFromSyllabus({ chapterId: ch.id, sectionCode: secCode, count: 2, kLevel: 'mixed' });
                 newQs = Array.isArray(aiRes) ? aiRes : (aiRes && Array.isArray(aiRes.questions) ? aiRes.questions : []);
                 this._loadDataPools();
@@ -2223,7 +2278,7 @@
         const cfg = ai.getConfig ? ai.getConfig() : {};
         const hasKeys = Array.isArray(cfg.apiKeys) && cfg.apiKeys.length > 0;
         let newQs = [];
-        if (hasKeys || cfg.provider === 'ollama') {
+        if (hasKeys) {
           this._showToast(`[AI] Đang soạn bộ đề mới cho Trùm Chương ${a.chapterId}...`);
           const aiRes = await ai.generateQuestionsFromSyllabus({ chapterId: a.chapterId, count: 6, kLevel: 'mixed' });
           newQs = Array.isArray(aiRes) ? aiRes : (aiRes && Array.isArray(aiRes.questions) ? aiRes.questions : []);
@@ -2551,7 +2606,7 @@
 
     _spawnFloatingDamage(anchorEl, text, extraClass) {
       if (typeof document === 'undefined' || !anchorEl) return;
-      const card = anchorEl.closest('.combatant-card') || anchorEl.parentElement;
+      const card = (typeof anchorEl.closest === 'function' ? anchorEl.closest('.combatant-card') : null) || anchorEl.parentElement;
       if (!card) return;
       const floater = document.createElement('div');
       floater.className = 'floating-dmg' + (extraClass ? ' ' + extraClass : '');
@@ -3458,7 +3513,6 @@
     // =========================================================================
     _readAIFormConfig() {
       const providerEl = safeEl('ai-provider-select');
-      const endpointEl = safeEl('ai-endpoint-input');
       const modelEl = safeEl('ai-model-select');
       const filterEl = safeEl('ai-filter-free');
       const rotEl = safeEl('ai-rotation-select');
@@ -3472,7 +3526,6 @@
 
       return {
         provider: providerEl ? providerEl.value : 'openrouter',
-        endpoint: endpointEl ? endpointEl.value.trim() : 'https://ai-api.congnghevietha.vn',
         model: modelEl && modelEl.value ? modelEl.value : 'openrouter/free',
         filterFreeOnly: filterEl ? !!filterEl.checked : true,
         rotationStrategy: rotEl ? rotEl.value : 'failover',
@@ -3568,14 +3621,12 @@
 
       const cfg = ai.getConfig();
       const providerEl = safeEl('ai-provider-select');
-      const endpointEl = safeEl('ai-endpoint-input');
       const modelEl = safeEl('ai-model-select');
       const filterEl = safeEl('ai-filter-free');
       const rotEl = safeEl('ai-rotation-select');
       const keysEl = safeEl('ai-keys-textarea');
 
       if (providerEl) providerEl.value = cfg.provider || 'openrouter';
-      if (endpointEl) endpointEl.value = cfg.endpoint || 'https://ai-api.congnghevietha.vn';
       if (filterEl) filterEl.checked = cfg.filterFreeOnly !== false;
       if (rotEl) rotEl.value = cfg.rotationStrategy || 'failover';
       if (keysEl) keysEl.value = Array.isArray(cfg.apiKeys) ? cfg.apiKeys.join('\n') : '';
@@ -3635,7 +3686,7 @@
           const statusEl = safeEl('ai-gen-status');
           if (statusEl) statusEl.textContent = '[ĐANG TẢI] Đang tải danh sách model từ ' + formCfg.provider + '...';
           try {
-            const res = await ai.fetchModels(formCfg.provider, formCfg.endpoint, formCfg.filterFreeOnly);
+            const res = await ai.fetchModels(formCfg.provider, formCfg.filterFreeOnly);
             const models = Array.isArray(res) ? res : (res && Array.isArray(res.models) ? res.models : []);
             const modelEl = safeEl('ai-model-select');
             if (modelEl && models.length > 0) {

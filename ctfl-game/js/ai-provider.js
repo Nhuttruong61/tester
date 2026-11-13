@@ -1,7 +1,7 @@
 /**
  * CTFL Bug Hunter 3D: Nhà Cung Cấp AI Đa Nền Tảng & Bộ Sinh Đề Thi Động
  * Tham chiếu kiến trúc LLMProvider / AIChatController / AIConfigManager từ esg-backend:
- *  - Hỗ trợ OpenRouter (mặc định openrouter/free), Google Gemini, Ollama (Local AI), OpenAI
+ *  - Hỗ trợ OpenRouter (mặc định openrouter/free), Google Gemini, OpenAI
  *  - Bể khóa API (API Key Pool) với chiến lược Failover tức thì 0s & Round-Robin
  *  - Tải danh sách model thực tế & Ping kiểm tra toàn bộ từng key kèm độ trễ ms
  *  - AI soạn đề thi mới dựa trực tiếp trên Giáo trình Tiếng Việt ISTQB CTFL v4.0.1
@@ -39,7 +39,6 @@
   const DEFAULT_CONFIG = {
     provider: 'openrouter',
     model: 'openrouter/free',
-    endpoint: 'https://ai-api.congnghevietha.vn',
     apiKeys: DEFAULT_OPENROUTER_KEYS.slice(),
     rotationStrategy: 'failover', // 'failover' | 'round_robin'
     temperature: 0.4,
@@ -84,11 +83,6 @@
         isFree: false,
         context_length: 1048576
       }
-    ],
-    ollama: [
-      { id: 'qwen3.5:9b', name: 'Qwen 3.5 (9B) - Local', isFree: true },
-      { id: 'llama3.3:70b', name: 'Llama 3.3 (70B) - Local', isFree: true },
-      { id: 'deepseek-r1', name: 'DeepSeek R1 - Local', isFree: true }
     ],
     gemini: [
       { id: 'gemini-2.0-flash', name: 'Gemini 2.0 Flash', isFree: true },
@@ -169,11 +163,6 @@
     return k.slice(0, 8) + '••••' + k.slice(-4);
   }
 
-  function normalizeEndpoint(endpoint) {
-    const raw = String(endpoint || DEFAULT_CONFIG.endpoint).trim();
-    return raw.replace(/\/+$/, '');
-  }
-
   function getConfig() {
     const raw = safeGetStorage(CONFIG_STORAGE_KEY);
     let parsed = {};
@@ -185,7 +174,8 @@
       }
     }
 
-    const provider = ['openrouter', 'gemini', 'ollama', 'openai'].includes(parsed.provider)
+    const wasRemovedProvider = parsed.provider && !['openrouter', 'gemini', 'openai'].includes(parsed.provider);
+    const provider = ['openrouter', 'gemini', 'openai'].includes(parsed.provider)
       ? parsed.provider
       : DEFAULT_CONFIG.provider;
 
@@ -199,7 +189,9 @@
     const tempNum = Number(parsed.temperature);
     const temperature = Number.isFinite(tempNum) ? Math.min(1.5, Math.max(0, tempNum)) : DEFAULT_CONFIG.temperature;
 
-    let resolvedModel = String(parsed.model || DEFAULT_CONFIG.model).trim() || DEFAULT_CONFIG.model;
+    let resolvedModel = wasRemovedProvider
+      ? DEFAULT_CONFIG.model
+      : (String(parsed.model || DEFAULT_CONFIG.model).trim() || DEFAULT_CONFIG.model);
     if (provider === 'openrouter' && resolvedModel === 'openrouter/auto') {
       resolvedModel = 'openrouter/free';
     }
@@ -207,7 +199,6 @@
     return {
       provider,
       model: resolvedModel,
-      endpoint: normalizeEndpoint(parsed.endpoint || DEFAULT_CONFIG.endpoint),
       apiKeys,
       rotationStrategy,
       temperature,
@@ -219,11 +210,10 @@
     const current = getConfig();
     const incoming = newConfig || {};
     const merged = {
-      provider: ['openrouter', 'gemini', 'ollama', 'openai'].includes(incoming.provider)
+      provider: ['openrouter', 'gemini', 'openai'].includes(incoming.provider)
         ? incoming.provider
         : current.provider,
       model: incoming.model !== undefined ? String(incoming.model).trim() : current.model,
-      endpoint: incoming.endpoint !== undefined ? normalizeEndpoint(incoming.endpoint) : current.endpoint,
       apiKeys: incoming.apiKeys !== undefined
         ? parseApiKeys(incoming.apiKeys)
         : (incoming.apiKey !== undefined ? parseApiKeys(incoming.apiKey) : current.apiKeys),
@@ -308,11 +298,13 @@
     return [autoItem, ...filtered];
   }
 
-  async function fetchModels(providerArg, customEndpointArg, filterFreeOnlyArg) {
+  async function fetchModels(providerArg, filterFreeOnlyOrLegacyArg, filterFreeOnlyArg) {
     const cfg = getConfig();
     const provider = providerArg || cfg.provider;
-    const endpoint = normalizeEndpoint(customEndpointArg || cfg.endpoint);
-    const filterFreeOnly = filterFreeOnlyArg !== undefined ? Boolean(filterFreeOnlyArg) : cfg.filterFreeOnly;
+    const resolvedFilterArg = typeof filterFreeOnlyOrLegacyArg === 'boolean'
+      ? filterFreeOnlyOrLegacyArg
+      : filterFreeOnlyArg;
+    const filterFreeOnly = resolvedFilterArg !== undefined ? Boolean(resolvedFilterArg) : cfg.filterFreeOnly;
 
     if (provider === 'openrouter') {
       try {
@@ -364,39 +356,6 @@
           models: ensureOpenRouterAutoFirst(fb),
           fromFallback: true,
           message: `Không thể kết nối OpenRouter (${err.message}). Đang dùng danh sách model dự phòng.`
-        };
-      }
-    }
-
-    if (provider === 'ollama') {
-      try {
-        const res = await fetchWithTimeout(`${endpoint}/api/tags`, { method: 'GET' }, 10000);
-        if (!res.ok) throw new Error(`HTTP ${res.status}`);
-        const json = await res.json();
-        const rawModels = Array.isArray(json?.models) ? json.models : [];
-        const mapped = rawModels.map(m => ({
-          id: m.name || m.model,
-          name: `${m.name || m.model} (Local AI)`,
-          isFree: true
-        })).filter(m => m.id);
-
-        if (mapped.length === 0) {
-          throw new Error('Endpoint chưa có model nào được tải về');
-        }
-        return {
-          success: true,
-          provider: 'ollama',
-          models: mapped,
-          fromFallback: false,
-          message: `Đã tải ${mapped.length} model từ Ollama (${endpoint}).`
-        };
-      } catch (err) {
-        return {
-          success: true,
-          provider: 'ollama',
-          models: FALLBACK_MODELS.ollama.slice(),
-          fromFallback: true,
-          message: `Không kết nối được Ollama tại ${endpoint} (${err.message}). Đang dùng danh sách mặc định.`
         };
       }
     }
@@ -507,7 +466,7 @@
   // Lõi gọi LLM theo từng Provider & Cơ chế Key Pool Failover 0s
   // =========================================================================
 
-  async function executeSingleProviderRequest({ provider, model, endpoint, apiKey, messages, temperature = 0.4, maxTokens = 2200, timeoutMs = 45000, omitMaxTokens = false }) {
+  async function executeSingleProviderRequest({ provider, model, apiKey, messages, temperature = 0.4, maxTokens = 2200, timeoutMs = 45000, omitMaxTokens = false }) {
     if (provider === 'openrouter' || provider === 'openai') {
       const url = provider === 'openrouter'
         ? 'https://openrouter.ai/api/v1/chat/completions'
@@ -616,47 +575,6 @@
       return { text, raw: data };
     }
 
-    if (provider === 'ollama') {
-      const base = normalizeEndpoint(endpoint);
-      const res = await fetchWithTimeout(
-        `${base}/api/chat`,
-        {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({
-            model: model || 'qwen3.5:9b',
-            messages,
-            stream: false,
-            options: {
-              temperature,
-              num_predict: maxTokens
-            }
-          })
-        },
-        timeoutMs
-      );
-
-      let data = null;
-      try {
-        data = await res.json();
-      } catch (_e) {
-        data = null;
-      }
-
-      if (!res.ok) {
-        const errMsg = data?.error || `HTTP ${res.status}`;
-        const err = new Error(errMsg);
-        err.httpStatus = res.status;
-        throw err;
-      }
-
-      const text = data?.message?.content || data?.response;
-      if (!text) {
-        throw new Error('Ollama không trả về nội dung văn bản.');
-      }
-      return { text, raw: data };
-    }
-
     throw new Error(`Nhà cung cấp AI không hợp lệ: ${provider}`);
   }
 
@@ -670,27 +588,6 @@
     const temperature = opts.temperature !== undefined ? opts.temperature : cfg.temperature;
     const maxTokens = opts.maxTokens || 2200;
     const timeoutMs = opts.timeoutMs || 45000;
-
-    if (provider === 'ollama') {
-      const start = nowMs();
-      const result = await executeSingleProviderRequest({
-        provider: 'ollama',
-        model,
-        endpoint: cfg.endpoint,
-        apiKey: '',
-        messages,
-        temperature,
-        maxTokens,
-        timeoutMs
-      });
-      return {
-        text: result.text,
-        provider,
-        model,
-        keyUsedMasked: cfg.endpoint,
-        attempts: [{ index: 0, status: 'active', duration_ms: Math.round(nowMs() - start) }]
-      };
-    }
 
     const keys = parseApiKeys(cfg.apiKeys);
     if (keys.length === 0) {
@@ -723,7 +620,6 @@
           const res = await executeSingleProviderRequest({
             provider,
             model: targetModel,
-            endpoint: cfg.endpoint,
             apiKey: key,
             messages,
             temperature,
@@ -806,9 +702,8 @@
     const baseCfg = getConfig();
     const incoming = customConfig || {};
     const cfg = {
-      provider: incoming.provider || baseCfg.provider,
+      provider: ['openrouter', 'gemini', 'openai'].includes(incoming.provider) ? incoming.provider : baseCfg.provider,
       model: incoming.model || baseCfg.model,
-      endpoint: normalizeEndpoint(incoming.endpoint || baseCfg.endpoint),
       apiKeys: incoming.apiKeys !== undefined
         ? parseApiKeys(incoming.apiKeys)
         : (incoming.apiKey !== undefined ? parseApiKeys(incoming.apiKey) : baseCfg.apiKeys)
@@ -817,55 +712,6 @@
     const pingMessages = [
       { role: 'user', content: 'Trả lời đúng 1 từ: OK' }
     ];
-
-    if (cfg.provider === 'ollama') {
-      const t0 = nowMs();
-      try {
-        await executeSingleProviderRequest({
-          provider: 'ollama',
-          model: cfg.model || 'qwen3.5:9b',
-          endpoint: cfg.endpoint,
-          apiKey: '',
-          messages: pingMessages,
-          temperature: 0,
-          maxTokens: 10,
-          timeoutMs: 12000
-        });
-        const dur = Math.round(nowMs() - t0);
-        return {
-          success: true,
-          message: `Kết nối Ollama (${cfg.endpoint}) thành công sau ${dur}ms!`,
-          total_keys: 1,
-          active_keys: 1,
-          details: [
-            {
-              index: 0,
-              key_masked: cfg.endpoint,
-              status: 'active',
-              duration_ms: dur,
-              message: `Hoạt động tốt (${cfg.model})`
-            }
-          ]
-        };
-      } catch (err) {
-        const dur = Math.round(nowMs() - t0);
-        return {
-          success: false,
-          message: `Kết nối Ollama thất bại: ${err.message}`,
-          total_keys: 1,
-          active_keys: 0,
-          details: [
-            {
-              index: 0,
-              key_masked: cfg.endpoint,
-              status: 'error',
-              duration_ms: dur,
-              message: err.message
-            }
-          ]
-        };
-      }
-    }
 
     const keys = cfg.apiKeys;
     if (!keys || keys.length === 0) {
@@ -889,7 +735,6 @@
         await executeSingleProviderRequest({
           provider: cfg.provider,
           model: cfg.model,
-          endpoint: cfg.endpoint,
           apiKey: key,
           messages: pingMessages,
           temperature: 0,

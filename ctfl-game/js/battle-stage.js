@@ -9,21 +9,21 @@
   var BOSS_THEMES = {
     1: {
       code: 'CHAP-01',
-      defaultName: 'NullPointer Overlord',
-      defaultTitle: 'Ác Ma Hư Không & 7 Nguyên Lý',
+      defaultName: 'Ác Ma Chuỗi Lỗi Khởi Nguyên',
+      defaultTitle: 'Trùm Lỗi Nhận Thức & 7 Nguyên Lý',
       primary: '#a855f7',
       secondary: '#6366f1',
       glow: '#c084fc',
       bgTint: 'rgba(168, 85, 247, 0.14)',
       taunts: [
         'Kiểm thử chỉ thấy lỗi, không chứng minh hết lỗi!',
-        '6 xúc tu NullPointer sẽ nuốt chửng code của ngươi!',
+        'Chuỗi Sai Sót - Khiếm Khuyết - Hỏng Hóc sẽ nghiền nát hệ thống!',
         'Ngươi dám kiểm thử vét cạn ta sao? Haha!'
       ]
     },
     2: {
       code: 'CHAP-02',
-      defaultName: 'Waterfall Leviathan',
+      defaultName: 'Thủy Quái Vòng Đời SDLC',
       defaultTitle: 'Thủy Quái Cơ Khí Vòng Đời SDLC',
       primary: '#06b6d4',
       secondary: '#0284c7',
@@ -37,8 +37,8 @@
     },
     3: {
       code: 'CHAP-03',
-      defaultName: 'Phantom Reviewer',
-      defaultTitle: 'Bóng Ma Pháp Sư Phân Tích Tĩnh',
+      defaultName: 'Phán Quan Kiểm Thử Tĩnh',
+      defaultTitle: 'Phán Quan Phân Tích & Kiểm Duyệt Tĩnh',
       primary: '#f43f5e',
       secondary: '#9f1239',
       glow: '#fb7185',
@@ -51,7 +51,7 @@
     },
     4: {
       code: 'CHAP-04',
-      defaultName: 'Boundary Hydra',
+      defaultName: 'Rồng 3 Đầu Giá Trị Biên K3',
       defaultTitle: 'Rồng Máy 3 Đầu Giá Trị Biên',
       primary: '#f59e0b',
       secondary: '#ea580c',
@@ -65,7 +65,7 @@
     },
     5: {
       code: 'CHAP-05',
-      defaultName: 'Risk Matrix Colossus',
+      defaultName: 'Khổng Lồ Ma Trận Rủi Ro',
       defaultTitle: 'Người Khổng Lồ Ma Trận Rủi Ro',
       primary: '#ef4444',
       secondary: '#b91c1c',
@@ -79,7 +79,7 @@
     },
     6: {
       code: 'CHAP-06',
-      defaultName: 'Automaton Prime',
+      defaultName: 'Siêu Robot Tự Động Hóa',
       defaultTitle: 'Siêu Robot Hủy Diệt Tự Động Hóa',
       primary: '#10b981',
       secondary: '#059669',
@@ -201,8 +201,8 @@
 
     // Combatant stats
     chapterId: 1,
-    bossName: 'NullPointer Overlord',
-    bossTitle: 'Ác Ma Hư Không & 7 Nguyên Lý',
+    bossName: 'Ác Ma Chuỗi Lỗi Khởi Nguyên',
+    bossTitle: 'Trùm Lỗi Nhận Thức & 7 Nguyên Lý',
     playerHp: 100,
     maxPlayerHp: 100,
     displayPlayerHp: 100,
@@ -491,7 +491,17 @@
     }
   }
 
+  function handleContextMenu(evt) {
+    if (evt && typeof evt.preventDefault === 'function') {
+      evt.preventDefault();
+    }
+  }
+
   function handlePointerDown(evt) {
+    if (evt && typeof evt.button === 'number' && evt.button !== 0) {
+      if (typeof evt.preventDefault === 'function') evt.preventDefault();
+      return;
+    }
     if (state.defeatAnim.active) return;
     var pt = getCanvasCoords(evt);
 
@@ -549,6 +559,7 @@
     if (typeof state.canvas.addEventListener === 'function') {
       state.canvas.addEventListener('mousemove', handlePointerMove);
       state.canvas.addEventListener('mousedown', handlePointerDown);
+      state.canvas.addEventListener('contextmenu', handleContextMenu);
     }
     if (typeof global.addEventListener === 'function') {
       global.addEventListener('resize', resizeCanvas);
@@ -562,6 +573,7 @@
     if (state.canvas && typeof state.canvas.removeEventListener === 'function') {
       state.canvas.removeEventListener('mousemove', handlePointerMove);
       state.canvas.removeEventListener('mousedown', handlePointerDown);
+      state.canvas.removeEventListener('contextmenu', handleContextMenu);
     }
     if (typeof global.removeEventListener === 'function') {
       global.removeEventListener('resize', resizeCanvas);
@@ -853,7 +865,7 @@
     ctx.globalAlpha = state.defeatAnim.active ? clamp(1 - state.defeatAnim.timer / 0.9, 0, 1) : 1;
 
     if (chapterId === 1) {
-      // Chapter 1: NullPointer Overlord (Void Demon + dark purple core + 6 lightning tentacles)
+      // Chapter 1: Ác Ma Chuỗi Lỗi Khởi Nguyên (Void Demon + dark purple core + 6 lightning tentacles)
       for (var t = 0; t < 6; t++) {
         var baseAng = (t / 6) * Math.PI * 2 + state.elapsed * 0.8;
         ctx.strokeStyle = t % 2 === 0 ? '#a855f7' : '#38bdf8';
@@ -1133,24 +1145,35 @@
       ctx.restore();
     }
 
-    // X-Slashes
+    // X-Slashes & Crescent Laser Waves
     for (var s = 0; s < state.slashes.length; s++) {
       var sl = state.slashes[s];
       var alpha = clamp(sl.life / sl.maxLife, 0, 1);
       ctx.save();
       ctx.translate(sl.x, sl.y);
       ctx.globalAlpha = alpha;
-      ctx.strokeStyle = sl.color;
-      ctx.lineWidth = 7 * alpha;
-      ctx.beginPath();
-      ctx.moveTo(-42, -42);
-      ctx.lineTo(42, 42);
-      ctx.moveTo(42, -42);
-      ctx.lineTo(-42, 42);
-      ctx.stroke();
-      ctx.strokeStyle = '#ffffff';
-      ctx.lineWidth = 2.5 * alpha;
-      ctx.stroke();
+      if (sl.isWave) {
+        ctx.strokeStyle = sl.color;
+        ctx.lineWidth = 8 * alpha;
+        ctx.beginPath();
+        ctx.arc(0, 0, 52, -Math.PI * 0.42, Math.PI * 0.42);
+        ctx.stroke();
+        ctx.strokeStyle = '#ffffff';
+        ctx.lineWidth = 3 * alpha;
+        ctx.stroke();
+      } else {
+        ctx.strokeStyle = sl.color;
+        ctx.lineWidth = 7 * alpha;
+        ctx.beginPath();
+        ctx.moveTo(-42, -42);
+        ctx.lineTo(42, 42);
+        ctx.moveTo(42, -42);
+        ctx.lineTo(-42, 42);
+        ctx.stroke();
+        ctx.strokeStyle = '#ffffff';
+        ctx.lineWidth = 2.5 * alpha;
+        ctx.stroke();
+      }
       ctx.restore();
     }
 
@@ -1423,6 +1446,9 @@
 
     // Slashes
     for (var s = state.slashes.length - 1; s >= 0; s--) {
+      if (state.slashes[s].vx) {
+        state.slashes[s].x += state.slashes[s].vx * dt;
+      }
       state.slashes[s].life -= dt;
       if (state.slashes[s].life <= 0) state.slashes.splice(s, 1);
     }
@@ -1612,6 +1638,17 @@
         color: '#22d3ee',
         width: 5,
         life: 0.28
+      });
+
+      // Traveling Crescent Laser Wave from Hero to Boss
+      state.slashes.push({
+        x: heroPos.x + 36,
+        y: heroPos.y - 12,
+        vx: Math.max(680, (bossPos.x - heroPos.x) * 2.8),
+        isWave: true,
+        color: isCritical ? '#fbbf24' : '#00f5d4',
+        life: 0.34,
+        maxLife: 0.34
       });
 
       state.slashes.push({
@@ -1806,6 +1843,9 @@
         '</div>';
 
       var canvas = typeof container.querySelector === 'function' ? container.querySelector('.mini-battle-canvas') : null;
+      if (canvas && typeof canvas.addEventListener === 'function') {
+        canvas.addEventListener('contextmenu', handleContextMenu);
+      }
       var hpLabel = typeof container.querySelector === 'function' ? container.querySelector('.mini-battle-hp') : null;
       var quizBox = typeof container.querySelector === 'function' ? container.querySelector('.mini-battle-quiz') : null;
       var mCtx = canvas && typeof canvas.getContext === 'function' ? canvas.getContext('2d') : null;

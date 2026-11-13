@@ -11,7 +11,7 @@
       id: 1,
       type: 'chapter',
       code: 'CHƯƠNG 1 • K1-K2',
-      name: 'Đại Ma Vương NullPointer',
+      name: 'Ác Ma Chuỗi Lỗi Khởi Nguyên',
       subtitle: 'Trùm Bản Chất & 7 Nguyên Lý Kiểm Thử',
       color: 0xf43f5e,
       emissive: 0xbe123c,
@@ -122,7 +122,7 @@
 
   const BUG_NAMES_VI = [
     'Bug Tràn Bộ Đệm (Buffer Overflow)',
-    'Lỗi Con Trỏ Null (NullPointer)',
+    'Khiếm Khuyết Ẩn Đặc Tả (Hidden Defect)',
     'Sai Giá Trị Biên (Off-by-One)',
     'Rò Rỉ Bộ Nhớ (Memory Leak)',
     'Lỗi Phân Vùng Tương Đương',
@@ -157,6 +157,7 @@
     portalNodes: [],
     bugMonsters: [],
     projectiles: [],
+    laserWaves: [],
     particles3D: [],
     shockwaves: [],
     pillars: [],
@@ -182,6 +183,12 @@
     dashCooldown: 0,
     dashActiveTimer: 0,
     shootCooldown: 0,
+    slashCooldown: 0,
+    xSlashCooldown: 0,
+    spinSlashCooldown: 0,
+    slashComboStep: 0,
+    slashComboResetTimer: 0,
+    heroSlashAnim: null,
     lastInteractTime: 0,
 
     // Camera Orbit & Shake
@@ -667,11 +674,17 @@
       const hilt = new THREE.Mesh(hiltGeo, hiltMat);
       bladeGroup.add(hilt);
 
-      const swordGeo = new THREE.BoxGeometry(0.1, 1.85, 0.22);
-      const swordMat = new THREE.MeshBasicMaterial({ color: 0x10b981 });
+      const swordGeo = new THREE.BoxGeometry(0.11, 2.05, 0.24);
+      const swordMat = new THREE.MeshBasicMaterial({ color: 0x00f5d4 });
       const swordBlade = new THREE.Mesh(swordGeo, swordMat);
-      swordBlade.position.y = 1.05;
+      swordBlade.position.y = 1.15;
       bladeGroup.add(swordBlade);
+
+      const swordCoreGeo = new THREE.BoxGeometry(0.05, 1.95, 0.1);
+      const swordCoreMat = new THREE.MeshBasicMaterial({ color: 0xffffff });
+      const swordCore = new THREE.Mesh(swordCoreGeo, swordCoreMat);
+      swordCore.position.y = 1.15;
+      bladeGroup.add(swordCore);
       leftArm.add(bladeGroup);
       bodyRoot.add(leftArm);
 
@@ -727,7 +740,9 @@
         rightLeg,
         leftArm,
         rightArm,
+        bladeGroup,
         swordBlade,
+        swordMat,
         gunBarrel,
         chestCore,
         auraRing,
@@ -793,7 +808,7 @@
         });
 
         if (cfg.id === 1) {
-          // Boss 1: Đại Ma Vương NullPointer (Rotating dark octahedron core + 8 orbital spikes)
+          // Boss 1: Ác Ma Chuỗi Lỗi Khởi Nguyên (Rotating dark octahedron core + 8 orbital spikes)
           const core = new THREE.Mesh(new THREE.OctahedronGeometry(2.1, 0), mainMat);
           bossRoot.add(core);
           hitMeshes.push(core);
@@ -1192,19 +1207,42 @@
     },
 
     /**
-     * Bind Keyboard (WASD, Arrows, Space, F, E), Mouse Raycasting & Touch/HUD Controls
+     * Bind Keyboard (WASD, Arrows, 1/J, 2/K, 3/L, Space, F, E), Mouse Raycasting & Touch/HUD Controls
      */
     _bindInputEvents() {
       if (typeof window === 'undefined') return;
 
       window.addEventListener('resize', () => this._onResize());
 
+      const clearDragAndKeys = () => {
+        this.isDraggingCam = false;
+        this.keys.up = false;
+        this.keys.down = false;
+        this.keys.left = false;
+        this.keys.right = false;
+      };
+      window.addEventListener('blur', clearDragAndKeys);
+      window.addEventListener('pointercancel', () => {
+        this.isDraggingCam = false;
+      });
+      window.addEventListener(
+        'contextmenu',
+        (e) => {
+          if (e && typeof e.preventDefault === 'function') e.preventDefault();
+          this.isDraggingCam = false;
+        },
+        { capture: true }
+      );
+
       window.addEventListener('keydown', (e) => {
+        if (!e) return;
         const tag = (e.target && e.target.tagName ? e.target.tagName : '').toLowerCase();
         if (tag === 'input' || tag === 'textarea' || tag === 'select') return;
-        if (typeof document !== 'undefined' && document.body &&
-            !document.body.classList.contains('world3d-freeroam') &&
-            !document.body.classList.contains('arena-3d-battle')) {
+        const isFreeroam = typeof document !== 'undefined' && document.body &&
+          document.body.classList.contains('world3d-freeroam');
+        const isBattle3D = typeof document !== 'undefined' && document.body &&
+          document.body.classList.contains('arena-3d-battle');
+        if (!isFreeroam && !isBattle3D) {
           return;
         }
 
@@ -1223,20 +1261,31 @@
         } else if (code === 'KeyD' || code === 'ArrowRight' || key === 'd') {
           this.keys.right = true;
           this.moveTarget = null;
-        } else if (code === 'Space' && this.mode === 'freeroam') {
-          // Only intercept Space when in 3D freeroam or when no button is focused
-          if (tag !== 'button') {
+        } else if (isFreeroam && this.mode === 'freeroam') {
+          if (code === 'Space') {
+            if (tag !== 'button') {
+              e.preventDefault();
+              this.triggerDash();
+            }
+          } else if (code === 'Digit1' || code === 'KeyJ' || key === '1' || key === 'j') {
             e.preventDefault();
-            this.triggerDash();
+            this.triggerLaserSlash();
+          } else if (code === 'Digit2' || code === 'KeyK' || key === '2' || key === 'k') {
+            e.preventDefault();
+            this.triggerCrossLaser();
+          } else if (code === 'Digit3' || code === 'KeyL' || key === '3' || key === 'l') {
+            e.preventDefault();
+            this.triggerSpinLaser();
+          } else if (code === 'KeyF' || key === 'f') {
+            this.triggerShoot();
+          } else if (code === 'KeyE' || key === 'e') {
+            this.triggerInteract();
           }
-        } else if (code === 'KeyF' || key === 'f') {
-          this.triggerShoot();
-        } else if (code === 'KeyE' || key === 'e') {
-          this.triggerInteract();
         }
       });
 
       window.addEventListener('keyup', (e) => {
+        if (!e) return;
         const code = e.code || '';
         const key = (e.key || '').toLowerCase();
         if (code === 'KeyW' || code === 'ArrowUp' || key === 'w') this.keys.up = false;
@@ -1246,20 +1295,36 @@
       });
 
       if (this.canvas && typeof this.canvas.addEventListener === 'function') {
+        this.canvas.addEventListener('contextmenu', (e) => {
+          if (e && typeof e.preventDefault === 'function') e.preventDefault();
+          this.isDraggingCam = false;
+        });
+
         this.canvas.addEventListener('pointerdown', (e) => {
+          if (!e) return;
+          if (typeof e.button === 'number' && e.button !== 0) {
+            if (typeof e.preventDefault === 'function') e.preventDefault();
+            this.isDraggingCam = false;
+            return;
+          }
+          if (typeof document !== 'undefined' && document.body &&
+              !document.body.classList.contains('world3d-freeroam')) {
+            this.isDraggingCam = false;
+            return;
+          }
           this.isDraggingCam = true;
-          this.dragStart.x = e.clientX;
-          this.dragStart.y = e.clientY;
+          this.dragStart.x = e.clientX || 0;
+          this.dragStart.y = e.clientY || 0;
           this.pointerMovedDistance = 0;
         });
 
         window.addEventListener('pointermove', (e) => {
-          if (!this.isDraggingCam) return;
-          const dx = e.clientX - this.dragStart.x;
-          const dy = e.clientY - this.dragStart.y;
+          if (!this.isDraggingCam || !e) return;
+          const dx = (e.clientX || 0) - this.dragStart.x;
+          const dy = (e.clientY || 0) - this.dragStart.y;
           this.pointerMovedDistance += Math.abs(dx) + Math.abs(dy);
-          this.dragStart.x = e.clientX;
-          this.dragStart.y = e.clientY;
+          this.dragStart.x = e.clientX || 0;
+          this.dragStart.y = e.clientY || 0;
 
           if (this.pointerMovedDistance > 6) {
             this.camYaw -= dx * 0.0065;
@@ -1270,6 +1335,11 @@
         window.addEventListener('pointerup', (e) => {
           if (!this.isDraggingCam) return;
           this.isDraggingCam = false;
+          if (!e || (typeof e.button === 'number' && e.button !== 0)) return;
+          if (typeof document !== 'undefined' && document.body &&
+              !document.body.classList.contains('world3d-freeroam')) {
+            return;
+          }
           if (this.pointerMovedDistance < 10 && e.target === this.canvas) {
             this._handleCanvasClick(e);
           }
@@ -1278,6 +1348,10 @@
         this.canvas.addEventListener(
           'wheel',
           (e) => {
+            if (typeof document !== 'undefined' && document.body &&
+                !document.body.classList.contains('world3d-freeroam')) {
+              return;
+            }
             this.camDist = Math.max(9, Math.min(32, this.camDist + (e.deltaY > 0 ? 1.5 : -1.5)));
           },
           { passive: true }
@@ -1287,29 +1361,35 @@
 
     /**
      * Raycast click on 3D Canvas:
-     * - Click on 3D Bug Monster -> fires 3D laser directly at that bug!
+     * - Click on 3D Bug Monster -> unleashes 3D Crescent Laser Slash directly at that bug!
      * - Click on 3D Boss / Portal -> walks to it & opens battle/portal!
-     * - Click on 3D Floor -> walks 3D Hero to clicked point & fires laser!
+     * - Click on 3D Floor -> walks 3D Hero to clicked point & unleashes a laser slash!
      */
     _handleCanvasClick(e) {
-      if (!this.raycaster || !this.camera || !this.scene || this.mode === 'battle') return;
+      if (!e || !this.raycaster || !this.camera || !this.scene || this.mode === 'battle') return;
+      if (typeof document !== 'undefined' && document.body &&
+          !document.body.classList.contains('world3d-freeroam')) {
+        return;
+      }
 
       const w = window.innerWidth || 1280;
       const h = window.innerHeight || 720;
-      this.mouse.x = (e.clientX / w) * 2 - 1;
-      this.mouse.y = -(e.clientY / h) * 2 + 1;
+      this.mouse.x = ((e.clientX || 0) / w) * 2 - 1;
+      this.mouse.y = -((e.clientY || 0) / h) * 2 + 1;
 
       this.raycaster.setFromCamera(this.mouse, this.camera);
 
       // 1. Check 3D Bug Monsters first
-      const bugMeshes = this.bugMonsters.filter((b) => b.alive).map((b) => b.bodyMesh);
+      const bugMeshes = this.bugMonsters
+        .filter((b) => b && b.alive && b.bodyMesh)
+        .map((b) => b.bodyMesh);
       if (bugMeshes.length > 0) {
         const bugHits = this.raycaster.intersectObjects(bugMeshes, false);
-        if (bugHits.length > 0) {
-          const hitBug = this.bugMonsters.find((b) => b.bodyMesh === bugHits[0].object);
+        if (bugHits.length > 0 && bugHits[0] && bugHits[0].object) {
+          const hitBug = this.bugMonsters.find((b) => b && b.bodyMesh === bugHits[0].object);
           if (hitBug && hitBug.alive) {
             this.heroRotY = Math.atan2(hitBug.x - this.heroPos.x, hitBug.z - this.heroPos.z);
-            this.triggerShoot(hitBug);
+            this.triggerLaserSlash(hitBug);
             return;
           }
         }
@@ -1317,14 +1397,18 @@
 
       // 2. Check 3D Bosses & Portals
       const interactMeshes = [];
-      this.bossNodes.forEach((n) => interactMeshes.push(...n.hitMeshes));
-      this.portalNodes.forEach((p) => interactMeshes.push(...p.hitMeshes));
+      this.bossNodes.forEach((n) => {
+        if (n && Array.isArray(n.hitMeshes)) interactMeshes.push(...n.hitMeshes.filter(Boolean));
+      });
+      this.portalNodes.forEach((p) => {
+        if (p && Array.isArray(p.hitMeshes)) interactMeshes.push(...p.hitMeshes.filter(Boolean));
+      });
 
       if (interactMeshes.length > 0) {
         const stationHits = this.raycaster.intersectObjects(interactMeshes, false);
-        if (stationHits.length > 0) {
+        if (stationHits.length > 0 && stationHits[0] && stationHits[0].object) {
           const data = stationHits[0].object.userData || {};
-          if (data.interactType) {
+          if (data.interactType && stationHits[0].point) {
             const pt = stationHits[0].point;
             this._handleStationClick(data.interactType, data.chapterId, pt.x, pt.z, data.bossName);
             return;
@@ -1335,7 +1419,7 @@
       // 3. Check 3D Floor Plane for Click-to-Move
       if (this.floorPlane) {
         const floorHits = this.raycaster.intersectObject(this.floorPlane, false);
-        if (floorHits.length > 0) {
+        if (floorHits.length > 0 && floorHits[0] && floorHits[0].point) {
           const pt = floorHits[0].point;
           const clampedRadius = Math.min(44, Math.hypot(pt.x, pt.z));
           const ang = Math.atan2(pt.z, pt.x);
@@ -1347,20 +1431,25 @@
             this.targetMarker.position.set(tx, 0.08, tz);
             this.targetMarker.visible = true;
           }
-          // Face target and fire a scouting laser pulse
+          // Face target
           this.heroRotY = Math.atan2(tx - this.heroPos.x, tz - this.heroPos.z);
-          this.triggerShoot();
         }
       }
     },
 
     /**
-     * Public API for On-Screen D-Pad / Action Buttons (`up`, `down`, `left`, `right`, `dash`, `shoot`, `interact`)
+     * Public API for On-Screen D-Pad / Action Buttons (`up`, `down`, `left`, `right`, `slash`, `xslash`, `spinslash`, `dash`, `shoot`, `interact`)
      */
     setControlAction(action, active = true) {
       if (action === 'up' || action === 'down' || action === 'left' || action === 'right') {
         this.keys[action] = Boolean(active);
         if (active) this.moveTarget = null;
+      } else if (action === 'slash' && active) {
+        this.triggerLaserSlash();
+      } else if (action === 'xslash' && active) {
+        this.triggerCrossLaser();
+      } else if (action === 'spinslash' && active) {
+        this.triggerSpinLaser();
       } else if (action === 'dash' && active) {
         this.triggerDash();
       } else if (action === 'shoot' && active) {
@@ -1368,6 +1457,277 @@
       } else if (action === 'interact' && active) {
         this.triggerInteract();
       }
+    },
+
+    /**
+     * Helper: Find nearest alive 3D Bug Monster within `maxRange`
+     */
+    _findNearestBug(maxRange = 20) {
+      let chosen = null;
+      let bestDist = maxRange;
+      this.bugMonsters.forEach((b) => {
+        if (!b || !b.alive) return;
+        const d = Math.hypot(b.x - this.heroPos.x, b.z - this.heroPos.z);
+        if (d < bestDist) {
+          bestDist = d;
+          chosen = b;
+        }
+      });
+      return chosen;
+    },
+
+    /**
+     * Helper: Spawn a 3D Crescent or Cross Laser Blade Wave flying across the outer arena
+     */
+    _spawnLaserWave3D(THREE, { angleY, colorHex, secondaryHex = 0xffffff, style = 'crescent', tiltZ = 0, speed = 36, life = 0.62, hitRadius = 3.2, piercing = true, xpReward = 20 }) {
+      if (!THREE || !this.scene) return;
+
+      const waveGroup = new THREE.Group();
+      const dirX = Math.sin(angleY);
+      const dirZ = Math.cos(angleY);
+      const startX = this.heroPos.x + dirX * 1.65;
+      const startZ = this.heroPos.z + dirZ * 1.65;
+      waveGroup.position.set(startX, 1.55, startZ);
+      waveGroup.rotation.y = angleY;
+
+      if (style === 'xslash') {
+        const barGeo = new THREE.BoxGeometry(4.4, 0.22, 0.45);
+        const coreGeo = new THREE.BoxGeometry(4.1, 0.09, 0.22);
+        const matA = new THREE.MeshBasicMaterial({ color: colorHex, transparent: true, opacity: 0.95 });
+        const matB = new THREE.MeshBasicMaterial({ color: secondaryHex, transparent: true, opacity: 0.95 });
+        const matCore = new THREE.MeshBasicMaterial({ color: 0xffffff, transparent: true, opacity: 0.98 });
+
+        const blade1 = new THREE.Mesh(barGeo, matA);
+        blade1.rotation.z = Math.PI * 0.24;
+        const core1 = new THREE.Mesh(coreGeo, matCore);
+        core1.rotation.z = Math.PI * 0.24;
+
+        const blade2 = new THREE.Mesh(barGeo, matB);
+        blade2.rotation.z = -Math.PI * 0.24;
+        const core2 = new THREE.Mesh(coreGeo, matCore);
+        core2.rotation.z = -Math.PI * 0.24;
+
+        waveGroup.add(blade1);
+        waveGroup.add(core1);
+        waveGroup.add(blade2);
+        waveGroup.add(core2);
+      } else {
+        // Crescent Laser Arc lying horizontally/diagonally facing forward (+Z in local group)
+        const arcHolder = new THREE.Group();
+        arcHolder.rotation.z = tiltZ;
+        const arcGeo = new THREE.TorusGeometry(2.25, 0.16, 10, 28, Math.PI * 0.92);
+        const arcMat = new THREE.MeshBasicMaterial({ color: colorHex, transparent: true, opacity: 0.94 });
+        const arcMesh = new THREE.Mesh(arcGeo, arcMat);
+        arcMesh.rotation.x = Math.PI / 2;
+        arcMesh.rotation.z = -Math.PI * 0.46;
+        arcHolder.add(arcMesh);
+
+        const innerGeo = new THREE.TorusGeometry(2.2, 0.07, 8, 24, Math.PI * 0.86);
+        const innerMat = new THREE.MeshBasicMaterial({ color: 0xffffff, transparent: true, opacity: 0.98 });
+        const innerMesh = new THREE.Mesh(innerGeo, innerMat);
+        innerMesh.rotation.x = Math.PI / 2;
+        innerMesh.rotation.z = -Math.PI * 0.43;
+        arcHolder.add(innerMesh);
+
+        waveGroup.add(arcHolder);
+      }
+
+      this.scene.add(waveGroup);
+      this.laserWaves.push({
+        mesh: waveGroup,
+        x: startX,
+        y: 1.55,
+        z: startZ,
+        vx: dirX * speed,
+        vz: dirZ * speed,
+        life,
+        maxLife: life,
+        hitRadius,
+        piercing,
+        xpReward,
+        colorHex,
+        hitBossIds: new Set()
+      });
+    },
+
+    /**
+     * Skill 1 [1 / J]: 3-Step Combo Crescent Laser Sword Slash (Chém Kiếm Laze)
+     */
+    triggerLaserSlash(targetBug = null) {
+      if (this.slashCooldown > 0) return;
+      this.slashCooldown = 0.24;
+
+      this.slashComboStep = (this.slashComboStep % 3) + 1;
+      this.slashComboResetTimer = 2.2;
+      const step = this.slashComboStep;
+
+      if (window.CTFLSound) {
+        if (typeof window.CTFLSound.laserSlash === 'function') {
+          window.CTFLSound.laserSlash(step);
+        } else if (typeof window.CTFLSound.click === 'function') {
+          window.CTFLSound.click();
+        }
+      }
+
+      const chosenBug = (targetBug && targetBug.alive) ? targetBug : (this.mode === 'freeroam' ? this._findNearestBug(18) : null);
+      if (chosenBug && chosenBug.alive) {
+        this.heroRotY = Math.atan2(chosenBug.x - this.heroPos.x, chosenBug.z - this.heroPos.z);
+      }
+
+      const palette = [0x00f5d4, 0x10b981, 0xfbbf24];
+      const tilts = [0.22, -0.26, 0];
+      const slashColor = palette[(step - 1) % palette.length];
+      const tiltZ = tilts[(step - 1) % tilts.length];
+
+      this.heroSlashAnim = {
+        type: 'slash',
+        step,
+        timer: 0.34,
+        duration: 0.34,
+        colorHex: slashColor
+      };
+      this.shakeIntensity = Math.max(this.shakeIntensity, step === 3 ? 0.32 : 0.16);
+
+      // Immediate close-range laser cleave around Hero's front arc
+      const dirX = Math.sin(this.heroRotY);
+      const dirZ = Math.cos(this.heroRotY);
+      this.bugMonsters.forEach((bug) => {
+        if (!bug || !bug.alive) return;
+        const bx = bug.x - this.heroPos.x;
+        const bz = bug.z - this.heroPos.z;
+        const dist = Math.hypot(bx, bz);
+        if (dist < 5.2) {
+          const dot = dist > 0.01 ? (bx * dirX + bz * dirZ) / dist : 1;
+          if (dot > -0.25) {
+            this._destroyBugMonster(bug, 20);
+          }
+        }
+      });
+
+      const THREE = window.THREE;
+      if (THREE && this.scene) {
+        this._spawnShockwave3D(THREE, this.heroPos.x + dirX * 1.5, 0.2, this.heroPos.z + dirZ * 1.5, slashColor, step === 3 ? 4.8 : 3.2);
+        this._spawnLaserWave3D(THREE, {
+          angleY: this.heroRotY,
+          colorHex: slashColor,
+          style: 'crescent',
+          tiltZ,
+          speed: step === 3 ? 42 : 36,
+          life: step === 3 ? 0.68 : 0.56,
+          hitRadius: step === 3 ? 3.8 : 3.1,
+          piercing: step === 3,
+          xpReward: 20
+        });
+      }
+      return this;
+    },
+
+    /**
+     * Skill 2 [2 / K]: Twin Cross-Laser Wave (Chém X-Laze Xuyên Phá)
+     */
+    triggerCrossLaser() {
+      if (this.xSlashCooldown > 0) return;
+      this.xSlashCooldown = 0.9;
+
+      if (window.CTFLSound) {
+        if (typeof window.CTFLSound.crossLaser === 'function') {
+          window.CTFLSound.crossLaser();
+        } else if (typeof window.CTFLSound.criticalHit === 'function') {
+          window.CTFLSound.criticalHit();
+        }
+      }
+
+      const chosenBug = this.mode === 'freeroam' ? this._findNearestBug(24) : null;
+      if (chosenBug && chosenBug.alive) {
+        this.heroRotY = Math.atan2(chosenBug.x - this.heroPos.x, chosenBug.z - this.heroPos.z);
+      }
+
+      this.heroSlashAnim = {
+        type: 'xslash',
+        step: 3,
+        timer: 0.44,
+        duration: 0.44,
+        colorHex: 0xff2a85
+      };
+      this.shakeIntensity = Math.max(this.shakeIntensity, 0.38);
+
+      const dirX = Math.sin(this.heroRotY);
+      const dirZ = Math.cos(this.heroRotY);
+      const THREE = window.THREE;
+      if (THREE && this.scene) {
+        this._spawnShockwave3D(THREE, this.heroPos.x + dirX * 1.8, 0.25, this.heroPos.z + dirZ * 1.8, 0xff2a85, 5.4);
+        this._spawnExplosion3D(THREE, this.heroPos.x + dirX * 1.8, 1.5, this.heroPos.z + dirZ * 1.8, 0x00f5d4, 18);
+        this._spawnLaserWave3D(THREE, {
+          angleY: this.heroRotY,
+          colorHex: 0x00f5d4,
+          secondaryHex: 0xff2a85,
+          style: 'xslash',
+          speed: 44,
+          life: 0.75,
+          hitRadius: 3.9,
+          piercing: true,
+          xpReward: 25
+        });
+      }
+      return this;
+    },
+
+    /**
+     * Skill 3 [3 / L]: 360° Whirlwind Laser Storm (Xoáy Kiếm Laze 360°)
+     */
+    triggerSpinLaser() {
+      if (this.spinSlashCooldown > 0) return;
+      this.spinSlashCooldown = 1.45;
+
+      if (window.CTFLSound) {
+        if (typeof window.CTFLSound.spinLaser === 'function') {
+          window.CTFLSound.spinLaser();
+        } else if (typeof window.CTFLSound.powerup === 'function') {
+          window.CTFLSound.powerup();
+        }
+      }
+
+      this.heroSlashAnim = {
+        type: 'spinslash',
+        step: 3,
+        timer: 0.56,
+        duration: 0.56,
+        colorHex: 0x00f5d4
+      };
+      this.shakeIntensity = Math.max(this.shakeIntensity, 0.46);
+
+      // Instantly cleave all surrounding Bug Monsters within 7.8 units
+      this.bugMonsters.forEach((bug) => {
+        if (!bug || !bug.alive) return;
+        const d = Math.hypot(bug.x - this.heroPos.x, bug.z - this.heroPos.z);
+        if (d < 7.8) {
+          this._destroyBugMonster(bug, 25);
+        }
+      });
+
+      const THREE = window.THREE;
+      if (THREE && this.scene) {
+        this._spawnShockwave3D(THREE, this.heroPos.x, 0.35, this.heroPos.z, 0x00f5d4, 8.2);
+        this._spawnShockwave3D(THREE, this.heroPos.x, 1.35, this.heroPos.z, 0xa855f7, 7.2);
+        this._spawnExplosion3D(THREE, this.heroPos.x, 1.6, this.heroPos.z, 0x00f5d4, 28);
+
+        // Fire 6 radial Crescent Laser Blades outward in 360 degrees
+        for (let i = 0; i < 6; i++) {
+          const radialAngle = this.heroRotY + (i / 6) * Math.PI * 2;
+          this._spawnLaserWave3D(THREE, {
+            angleY: radialAngle,
+            colorHex: i % 2 === 0 ? 0x00f5d4 : 0xa855f7,
+            style: 'crescent',
+            tiltZ: 0,
+            speed: 32,
+            life: 0.52,
+            hitRadius: 2.9,
+            piercing: true,
+            xpReward: 25
+          });
+        }
+      }
+      return this;
     },
 
     /**
@@ -1482,11 +1842,11 @@
     /**
      * Destroy a 3D Bug Monster & Award XP via `onBugSmashed(xpReward)`
      */
-    _destroyBugMonster(bug) {
+    _destroyBugMonster(bug, xpRewardArg = 15) {
       if (!bug || !bug.alive) return;
       bug.alive = false;
       bug.respawnTimer = 6.5;
-      bug.group.visible = false;
+      if (bug.group) bug.group.visible = false;
 
       const THREE = window.THREE;
       if (THREE && this.scene) {
@@ -1494,7 +1854,7 @@
         this._spawnShockwave3D(THREE, bug.x, 0.15, bug.z, 0xfbbf24, 3.2);
       }
 
-      const xpReward = 15;
+      const xpReward = Number(xpRewardArg) > 0 ? Number(xpRewardArg) : 15;
       if (typeof this.onBugSmashed === 'function') {
         this.onBugSmashed(xpReward, bug.name);
       } else if (typeof window.CTFLWorld3D?.onBugSmashed === 'function') {
@@ -1745,6 +2105,13 @@
       if (this.dashCooldown > 0) this.dashCooldown = Math.max(0, this.dashCooldown - dt);
       if (this.dashActiveTimer > 0) this.dashActiveTimer = Math.max(0, this.dashActiveTimer - dt);
       if (this.shootCooldown > 0) this.shootCooldown = Math.max(0, this.shootCooldown - dt);
+      if (this.slashCooldown > 0) this.slashCooldown = Math.max(0, this.slashCooldown - dt);
+      if (this.xSlashCooldown > 0) this.xSlashCooldown = Math.max(0, this.xSlashCooldown - dt);
+      if (this.spinSlashCooldown > 0) this.spinSlashCooldown = Math.max(0, this.spinSlashCooldown - dt);
+      if (this.slashComboResetTimer > 0) {
+        this.slashComboResetTimer = Math.max(0, this.slashComboResetTimer - dt);
+        if (this.slashComboResetTimer === 0) this.slashComboStep = 0;
+      }
       if (this.shakeIntensity > 0) this.shakeIntensity = Math.max(0, this.shakeIntensity - dt * 1.8);
 
       // 1. Update Hero Movement & Animation
@@ -1753,8 +2120,9 @@
       // 2. Update Roaming 3D Bug Monsters
       this._updateBugMonsters(dt, t);
 
-      // 3. Update 3D Laser Projectiles
+      // 3. Update 3D Laser Projectiles & Laser Blade Waves
       this._updateProjectiles(dt);
+      this._updateLaserWaves(dt);
 
       // 4. Update 6 Giant 3D Bosses & Special Portals
       this._updateBossesAndPortals(dt, t);
@@ -1819,20 +2187,36 @@
         }
       }
 
-      // Apply Hero Position & Rotation
+      // Apply Hero Position, Slash Lunges & 360 Spin
       let lungeOffsetX = 0;
       let lungeOffsetZ = 0;
+      let spinYawOffset = 0;
+      let activeSlashProgress = 0;
       if (this.heroBattleAnim && this.heroBattleAnim.timer > 0) {
         this.heroBattleAnim.timer -= dt;
         const p = Math.sin((this.heroBattleAnim.timer / this.heroBattleAnim.duration) * Math.PI);
         lungeOffsetX = Math.sin(this.heroRotY) * p * 3.2;
         lungeOffsetZ = Math.cos(this.heroRotY) * p * 3.2;
       }
+      if (this.heroSlashAnim && this.heroSlashAnim.timer > 0) {
+        this.heroSlashAnim.timer = Math.max(0, this.heroSlashAnim.timer - dt);
+        activeSlashProgress = 1 - this.heroSlashAnim.timer / Math.max(0.01, this.heroSlashAnim.duration);
+        if (this.heroSlashAnim.type === 'spinslash') {
+          spinYawOffset = activeSlashProgress * Math.PI * 4; // 720-degree whirlwind spin
+        } else {
+          const lunge = Math.sin(activeSlashProgress * Math.PI) * (this.heroSlashAnim.type === 'xslash' ? 1.85 : 1.25);
+          lungeOffsetX += Math.sin(this.heroRotY) * lunge;
+          lungeOffsetZ += Math.cos(this.heroRotY) * lunge;
+        }
+        if (this.heroSlashAnim.timer === 0) {
+          this.heroSlashAnim = null;
+        }
+      }
 
       this.hero.position.set(this.heroPos.x + lungeOffsetX, 0, this.heroPos.z + lungeOffsetZ);
-      this.hero.rotation.y = this.heroRotY;
+      this.hero.rotation.y = this.heroRotY + spinYawOffset;
 
-      // Animate Articulated Limbs, Jump & Companion Drone
+      // Animate Articulated Limbs, Laser Sword Ignition, Jump & Companion Drone
       const parts = this.heroParts;
       if (parts.bodyRoot) {
         const jumpHeight = this.dashActiveTimer > 0 ? Math.sin((this.dashActiveTimer / 0.28) * Math.PI) * 2.2 : 0;
@@ -1842,11 +2226,39 @@
         const swing = isMoving ? Math.sin(t * 12) * 0.65 : Math.sin(t * 2.5) * 0.06;
         if (parts.leftLeg) parts.leftLeg.rotation.x = swing;
         if (parts.rightLeg) parts.rightLeg.rotation.x = -swing;
-        if (parts.leftArm) {
-          parts.leftArm.rotation.x = this.heroBattleAnim && this.heroBattleAnim.timer > 0 ? -1.4 : -swing * 0.7;
-        }
-        if (parts.rightArm) {
-          parts.rightArm.rotation.x = this.shootCooldown > 0 ? -0.45 : swing * 0.5;
+
+        if (this.heroSlashAnim) {
+          const sweep = Math.sin(activeSlashProgress * Math.PI);
+          if (parts.leftArm) {
+            parts.leftArm.rotation.x = -1.55;
+            parts.leftArm.rotation.z = this.heroSlashAnim.type === 'spinslash'
+              ? -1.25
+              : (this.heroSlashAnim.step === 2 ? (1.1 - activeSlashProgress * 2.2) : (-1.1 + activeSlashProgress * 2.2));
+          }
+          if (parts.rightArm) {
+            parts.rightArm.rotation.x = this.heroSlashAnim.type === 'xslash' ? -1.45 : -0.6 * sweep;
+          }
+          if (parts.bladeGroup) {
+            const bladeScale = 1 + sweep * 0.85;
+            parts.bladeGroup.scale.set(bladeScale, 1 + sweep * 0.65, bladeScale);
+          }
+          if (parts.swordMat && parts.swordMat.color && this.heroSlashAnim.colorHex) {
+            parts.swordMat.color.setHex(this.heroSlashAnim.colorHex);
+          }
+        } else {
+          if (parts.leftArm) {
+            parts.leftArm.rotation.x = this.heroBattleAnim && this.heroBattleAnim.timer > 0 ? -1.4 : -swing * 0.7;
+            parts.leftArm.rotation.z = 0;
+          }
+          if (parts.rightArm) {
+            parts.rightArm.rotation.x = this.shootCooldown > 0 ? -0.45 : swing * 0.5;
+          }
+          if (parts.bladeGroup) {
+            parts.bladeGroup.scale.set(1, 1, 1);
+          }
+          if (parts.swordMat && parts.swordMat.color) {
+            parts.swordMat.color.setHex(0x00f5d4);
+          }
         }
       }
 
@@ -1925,6 +2337,55 @@
             this._spawnExplosion3D(THREE, p.x, p.y, p.z, 0x00f5d4, 12);
           }
           this.projectiles.splice(i, 1);
+        }
+      }
+    },
+
+    _updateLaserWaves(dt) {
+      const THREE = window.THREE;
+      for (let i = this.laserWaves.length - 1; i >= 0; i--) {
+        const w = this.laserWaves[i];
+        w.life -= dt;
+        w.x += w.vx * dt;
+        w.z += w.vz * dt;
+        if (w.mesh) {
+          w.mesh.position.set(w.x, w.y, w.z);
+          const progress = 1 - Math.max(0, w.life / w.maxLife);
+          const grow = 1 + progress * 0.45;
+          w.mesh.scale.set(grow, 1, grow);
+        }
+
+        let consumed = false;
+        // Slice roaming 3D Bug Monsters
+        for (let b = 0; b < this.bugMonsters.length; b++) {
+          const bug = this.bugMonsters[b];
+          if (!bug || !bug.alive) continue;
+          if (Math.hypot(w.x - bug.x, w.z - bug.z) < w.hitRadius) {
+            this._destroyBugMonster(bug, w.xpReward || 20);
+            if (!w.piercing) {
+              consumed = true;
+              break;
+            }
+          }
+        }
+
+        // Flash & recoil nearby 3D Bosses if laser wave strikes them
+        for (let k = 0; k < this.bossNodes.length; k++) {
+          const bn = this.bossNodes[k];
+          if (!bn || w.hitBossIds.has(bn.config.id)) continue;
+          if (Math.hypot(w.x - bn.x, w.z - bn.z) < 4.4) {
+            w.hitBossIds.add(bn.config.id);
+            bn.recoilZ = 1.35;
+            bn.flashTimer = 0.25;
+            if (THREE && this.scene) {
+              this._spawnExplosion3D(THREE, w.x, 2.4, w.z, w.colorHex || 0x00f5d4, 14);
+            }
+          }
+        }
+
+        if (consumed || w.life <= 0) {
+          if (this.scene && w.mesh) this.scene.remove(w.mesh);
+          this.laserWaves.splice(i, 1);
         }
       }
     },
